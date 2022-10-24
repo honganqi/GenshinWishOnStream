@@ -102,5 +102,3 @@ damage to your game or software.
 * This app is intended to be used for entertainment purposes
 only. If you are not having fun with this, please restore
 your files, delete this app, and purge it from your memory.
-* TL;DR Please back up your bigfile before doing this and
-enjoy!
