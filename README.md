@@ -1,4 +1,4 @@
-# GenshinImpact-TwitchRedeemWish
+# GenshinImpact-TwitchRedeemWisher
 Let your viewers wish on your stream (overlay!)
 
 ## About
@@ -93,7 +93,7 @@ Please feel free to join me on Discord!
 [![Discord](https://discord.com/assets/f9bb9c4af2b9c32a2c5ee0014661546d.png)](https://discord.gg/G5rEU7bK5j)
 
 ## Credits
-[![Genshin Impact Wiki | Fandom]https://genshin-impact.fandom.com/wiki/Genshin_Impact_Wiki](https://genshin-impact.fandom.com/wiki/Genshin_Impact_Wiki)
+[Genshin Impact Wiki | Fandom](https://genshin-impact.fandom.com/wiki/Genshin_Impact_Wiki)
 for the character portraits and the element icons
 
 ## Notes
