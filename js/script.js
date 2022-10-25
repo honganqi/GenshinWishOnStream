@@ -11,6 +11,9 @@ var lastItemRun = 0;
 
 var redeemer;
 
+let character_image_filenameara;
+let element;
+
 
 const runThis = async () => {
     for (let i = lastItemRun; i < queue.length; i++) {
@@ -41,50 +44,51 @@ function addToQueue(redeem) {
 
 function genshinWish() {
 	let audio = new Audio("sounds/character_appearance.ogg");
-	setTimeout(function () {
-		audio.play();
-	}, 500);
-	
+
 	let star = randomInt(cases);
 	let choice = Math.floor(Math.random() * (choices[star].length));
 	let character = choices[star][choice];
-	let element = 'img/elements/' + elementDictionary(character);
-	let character_image_filename = `img/characters/${character}`;
+	element = 'img/elements/' + elementDictionary(character);
+	character_image_filename = `img/characters/${character}`;
 
 	if (star <= 3)
 		character_image_filename = 'img/characters/dull_blades/' + getDullBlades();
 
+	// load all existing images
+	var loaders = [];
 	var extensions = ['webp', 'png', 'svg'];
 	extensions.forEach((ext) => {
-		checker: if (imageExists(character_image_filename + '.' + ext)) {
-			character_image_filename = character_image_filename + '.' + ext;
-			break checker;
-		}
+		loaders.push(imageExists(character_image_filename + '.' + ext, "character"));
 	});
 
 	extensions.forEach((ext) => {
-		checker: if (imageExists(element + '.' + ext)) {
-			element = element + '.' + ext;
-			break checker;
-		}
+		loaders.push(imageExists(element + '.' + ext, "element"));
+	});
+
+	// play animation once all images are checked and loaded
+	$.when.apply(null, loaders).done(function() {
+		setTimeout(function () {
+			audio.play();
+		}, 500);
+		
+		document.getElementById("wrapper").innerHTML = `
+		<div id="container">
+		<img src="${character_image_filename}" id="character">
+		<h1 id="name">${character}</h1>
+		<h2 id="redeemer"><span id="actual_name">${redeemer}</span></h2>
+		<img src="${element}" id="element">
+		<div id="stars"></div>
+		</div>
+		`;
+
+		//writeToFile(redeemer, character);
+
+		setTimeout(function() {
+			putStars(star);
+		}, 500);
 	});
 
 
-	document.getElementById("wrapper").innerHTML = `
-	<div id="container">
-	<img src="${character_image_filename}" id="character">
-	<h1 id="name">${character}</h1>
-	<h2 id="redeemer"><span id="actual_name">${redeemer}</span></h2>
-	<img src="${element}" id="element">
-	<div id="stars"></div>
-	</div>
-	`;
-
-	//writeToFile(redeemer, character);
-
-	setTimeout(function() {
-		putStars(star);
-	}, 500);
 }
 
 function putStars(stars) {
@@ -115,14 +119,35 @@ function randomInt(cases) {
 	}
 }
 
-function imageExists(image_url) {
-
+function imageExists(image_url, img_type) {
+	var deferred = $.Deferred();
+	/*
     var http = new XMLHttpRequest();
 
     http.open('HEAD', image_url, false);
     http.send();
 
     return http.status != 404;
+    */
+    var img = new Image();
+    img.src = image_url;
+    img.onload = () => {
+    	console.log("success: " + image_url);
+    	switch (img_type) {
+    		case "character":
+    			character_image_filename = image_url;
+    			break;
+    		case "element":
+    			element = image_url;
+    			break;
+    	}
+    	deferred.resolve();
+    };
+    img.onerror = () => {
+    	console.log("error: " + image_url);
+    	deferred.resolve();
+    }
+    return deferred.promise();
 }
 
 function writeToFile(user, character) {
