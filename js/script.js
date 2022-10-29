@@ -1,5 +1,5 @@
 /* Genshin Impact: Twitch Redeem Wisher v1.0 by honganqi */
-/* https://github.com/honganqi/GenshinImpact-TwitchRedeemWish */
+/* https://github.com/honganqi/GenshinImpact-TwitchRedeemWisher */
 
 var ws;
 
@@ -13,6 +13,8 @@ var redeemer;
 
 let character_image_filenameara;
 let element;
+
+let twitchOAuthToken = "";
 
 
 const runThis = async () => {
@@ -259,21 +261,19 @@ function connect(topics) {
 
 }
 
-function getChannelInfo(url) {
-    $.ajax({
-        beforeSend: function(request) {
-            request.setRequestHeader("Client-Id", clientId);
-            request.setRequestHeader("Authorization", "Bearer " + twitchOAuthToken);
-        },
+function getChannelID(channelName) {
+    return $.ajax({
+        url: "https://sidestreamnetwork.net/GenshinTwitchRedeems/genshinWisher.php",
         dataType: "json",
-        url: "https://api.twitch.tv/helix" + url
-    })
-    .done(function(data) {
-        var channel_id = data.data[0].id;
-        topics = ['channel-points-channel-v1.' + channel_id];
-        connect(topics);
+        data: {type: "info", channelName: channelName}        
     });
 }
 
 
-getChannelInfo("/users?login=" + channelName);
+
+getChannelID(channelName).done(function(data) {
+    var channel_id = data.id;
+    twitchOAuthToken = data.token;
+    topics = ['channel-points-channel-v1.' + channel_id];
+    connect(topics);
+});
