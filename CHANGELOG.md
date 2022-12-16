@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in
 this file.
 
+## 1.0d - 2022/12/17
+### Changed
+* Transferred some logic from rates.js to script.js to make it
+easier to customize values
+
 ## 1.0c - 2022/10/29
 ### Added
 * added a function that refreshes the Twitch token upon expiry
