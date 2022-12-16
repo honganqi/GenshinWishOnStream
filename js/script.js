@@ -16,6 +16,14 @@ let element;
 
 let twitchOAuthToken = "";
 
+let cases = {};
+let previousRate = 0;
+
+rates.forEach((rate, star) => {
+	cases[previousRate + rate] = star;
+	previousRate += rate;
+});
+
 
 const runThis = async () => {
     for (let i = lastItemRun; i < queue.length; i++) {

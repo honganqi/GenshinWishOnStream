@@ -5,11 +5,3 @@ let rates = [];
 rates[5] = 10;
 rates[4] = 25;
 rates[3] = 65;
-
-let cases = {};
-let previousRate = 0;
-
-rates.forEach((rate, star) => {
-	cases[previousRate + rate] = star;
-	previousRate += rate;
-});
