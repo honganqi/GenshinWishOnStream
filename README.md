@@ -18,21 +18,31 @@ Points enabled
 how you want to customize this
 
 ## Installation
-* To get started, download the latest release ZIP file,
-extract this anywhere, and add the `Genshin_Wish.html` file
-as a browser source in your OBS.
+* To get started, download the ZIP file of the latest release
+and extract this anywhere.
 * Go to the `js` folder, use a text editor and modify the
 `user_settings.js` file to change the `channelName` and 
 `redeemTitle` into your own settings. `channelName` is the
 name of your channel on Twitch and `redeemTitle` is the name of
 your Channel Point Reward (the one with the customizable image,
-cost, cooldown, etc)
+cost, cooldown, etc).
+* If this is your first time to use this, you will need to open
+the `Genshin_Wish.html` file in any browser. You will then be
+redirected automatically to Twitch and will be asked to give
+this script permission to read your channel point redemptions.
+After permission is given, you may close the file.
+* Add the `Genshin_Wish.html` file as a browser source in your OBS.
 * The suggested dimensions of your browser source depends on
 your full screen size but it is typically 1920x1080.
 * To get the necessary font, go to your game's installation,
 then navigate to `<game folder>/Genshin Impact Game/GenshinImpact_Data/StreamingAssets/MiHoYoSDKRes/HttpServerResources/font`
 and copy the `zh-ch.ttf` file to the `fonts` folder of where
 you extracted Genshin Wisher files.
+
+## Change of Account/Channel Name
+* Please note that if you change your account/channel name,
+you may need to do the whole "load the HTML file in any browser
+thing and give read permissions" thing.
 
 ## Customization
 * Three star items are included by default like in the

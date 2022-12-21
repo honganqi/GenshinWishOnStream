@@ -45,7 +45,7 @@ choices[5] = [
 	"Diluc",
 	"Eula",
 	"Ganyu",
-	"Hu_Tao",
+	"Hu Tao",
 	"Jean",
 	"Kaedehara Kazuha",
 	"Kamisato Ayaka",

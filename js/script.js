@@ -1,7 +1,9 @@
-/* Genshin Impact: Twitch Redeem Wisher v1.0 by honganqi */
+/* Genshin Impact: Twitch Redeem Wisher v1.1 by honganqi */
 /* https://github.com/honganqi/GenshinImpact-TwitchRedeemWisher */
 
+var scope = encodeURIComponent('channel:read:redemptions');
 var ws;
+
 
 var queue = [];
 var queueItems = [];
@@ -11,10 +13,11 @@ var lastItemRun = 0;
 
 var redeemer;
 
-let character_image_filenameara;
+let character_image_filename;
 let element;
 
 let twitchOAuthToken = "";
+let twitchAuthURL = authUrl();
 
 let cases = {};
 let previousRate = 0;
@@ -240,8 +243,9 @@ function connect(topics) {
 
     ws.onmessage = function(event) {
         message = JSON.parse(event.data);
-        if (message.error && (message.error == "ERR_BADAUTH"))
-        	alert("OAuth Token is missing. Kindly contact the developer.");
+        if (message.error && (message.error == "ERR_BADAUTH")) {
+        	//alert("OAuth Token is missing. Kindly contact the developer.");
+        }
 
         if (message.type == 'RECONNECT') {
             setTimeout(connect, reconnectInterval);
@@ -269,17 +273,53 @@ function connect(topics) {
 
 }
 
+
+
+
+
+function authUrl() {
+	var clientId = 'wjwf4wolayi04w61r9jfj242z2j5v8';
+	var redirectURI = 'https://sidestreamnetwork.net/GenshinTwitchRedeems';
+    sessionStorage.twitchOAuthState = nonce(15);
+    var url = 'https://id.twitch.tv/oauth2/authorize' +
+        '?response_type=code' +
+        '&client_id=' + clientId + 
+        '&redirect_uri=' + redirectURI +
+        '&state=' + sessionStorage.twitchOAuthState +
+        '&scope=' + scope;
+    return url
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function getChannelID(channelName) {
+	var sendState = sessionStorage.twitchOAuthState;
     return $.ajax({
         url: "https://sidestreamnetwork.net/GenshinTwitchRedeems/genshinWisher.php",
         dataType: "json",
-        data: {type: "info", channelName: channelName}        
+        data: {type: "info", channelName: channelName, state: sendState}        
     });
 }
 
 
 
 getChannelID(channelName).done(function(data) {
+	if (data.error !== undefined) {
+		console.log("Twitch OAuth Token not found or expired. Redirecting to Twitch for authorization...");
+		window.location.href = twitchAuthURL;
+		//document.getElementById('wrapper').innerHTML = '<a id="link_to_token" href="' + twitchAuthURL + '">Twitch OAuth Token is not yet set. Please click here to authorize the Genshin Wisher to read your channel point redemptions on Twitch.</a>';
+	}
     var channel_id = data.id;
     twitchOAuthToken = data.token;
     topics = ['channel-points-channel-v1.' + channel_id];
