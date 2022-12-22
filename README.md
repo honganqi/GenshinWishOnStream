@@ -9,6 +9,14 @@ they disappear. If for some reason you thought this could be
 used to affect your pulls in-game, it won't. Or maybe it could,
 depends on your belief in rituals.
 
+## IMPORTANT DATA PRIVACY
+* Upon first use, this script stores your Twitch channel name in
+my database to simplify the process of acquiring and refreshing
+Twitch access tokens. Please do not use this if you do not agree
+to this. But please know that I will not sell or trade the data
+in any way. I will bring that list/database with me to my grave
+(hopefully not too soon).
+
 ## Requirements
 * Any streaming software that accepts browser sources
 * A Twitch channel 
