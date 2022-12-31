@@ -1,4 +1,4 @@
-# GenshinImpact-TwitchRedeemWisher
+# Genshin Impact: Wish On Stream
 Let your viewers wish on your stream (overlay!)
 
 ## About
@@ -9,17 +9,20 @@ they disappear. If for some reason you thought this could be
 used to affect your pulls in-game, it won't. Or maybe it could,
 depends on your belief in rituals.
 
-## IMPORTANT DATA PRIVACY
+## IMPORTANT: DATA PRIVACY
 * Upon first use, this script stores your Twitch channel name in
 my database to simplify the process of acquiring and refreshing
-Twitch access tokens. Please do not use this if you do not agree
-to this. But please know that I will not sell or trade the data
-in any way. I will bring that list/database with me to my grave
-(hopefully not too soon).
+Twitch access tokens for you. Please do not use this if you do
+not agree to this. But please know that I will not sell or trade
+the data in any way. I will bring that list/database with me to
+my grave (hopefully not too soon).
+* If you use the GUI frontend application, your data will be
+stored locally on your computer and no data will be stored in
+any database.
 
 ## Requirements
 * Any streaming software that accepts browser sources
-* A Twitch channel 
+* A Twitch channel
 * Your Twitch channel should have Viewer Rewards and Channel
 Points enabled
 * MAYBE some familiarity with JavaScript but it depends if and
@@ -46,6 +49,9 @@ your full screen size but it is typically 1920x1080.
 then navigate to `<game folder>/Genshin Impact Game/GenshinImpact_Data/StreamingAssets/MiHoYoSDKRes/HttpServerResources/font`
 and copy the `zh-ch.ttf` file to the `fonts` folder of where
 you extracted Genshin Wisher files.
+* An optional GUI (graphical user interface) app is available in 
+[GitHub](https://github.com/honganqi/GenshinWishOnStreamGUI)
+to make it easier to customize this script
 
 ## Change of Account/Channel Name
 * Please note that if you change your account/channel name,
@@ -70,7 +76,7 @@ wanted to change Nilou into a 14-star character, add
 `"rates[14] = 0.25"` in `rates.js` for a 0.25% pull rate and add
 `choices[14] = ["Nilou"]` in `choices.js`.
 * ELEMENTS: Please remember to add the respective elements of
-your characters in the `elementDictionary()` function in the
+your characters in the `elementDictionary` array in the
 `choices.js` file. The images of these elements are found in
 `img/elements`.
 * PORTRAITS: Characters in `choices.js` need to have their 
@@ -80,14 +86,16 @@ case-sensitive). Three (3) types of images are accepted: WEBP,
 PNG, and SVG listed in order of priority. e.g. If a WEBP file is
 found, it will use that. If the WEBP file does not exist and a
 PNG file is found, it will use that instead.
-* 3-STAR PULLS: I added 3-star pulls for humor which are
-selected randomly upon pulling a 3-star item. I also included
-a "LUL" element as their element by default. You can remove
-this by going to `rates.js` and removing the `rates[3]` line and
-modifying the rates of the 4-star and 5-star pulls to total 100.
-You can add random items to the 3-star pulls by modifying the 
-items in `choices[]` in the `getDullBlades()` in the
-`choices.js` file and add their images in the
+* DULL BLADE MEME PULLS: I added Dull Blade pulls for humor
+which are selected randomly. By default, these are 3-star items.
+I also included a "LUL" element as their element by default. You
+can change the star value by changing the key in the array (e.g.
+`choices[3]` to `choices[1]`) provided you add the necessary
+star values in between and their characters. You can remove this
+by removing the `Dull Blade` item in all of the `choices`
+arrays. You can add more items to the Dull Blade pulls by
+modifying the items in `choices[]` in the `dullBlades` array in
+the `choices.js` file and add their images in the
 `img/characters/dull_blades` folder.
 * DISPLAY DURATION: Redemptions are displayed 8 seconds by
 default. You may customize this by modifying the

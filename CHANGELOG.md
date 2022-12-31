@@ -2,6 +2,39 @@
 All notable changes to this project will be documented in
 this file.
 
+## 1.2 - 2022/12/31
+### Added
+* Added a GUI application in the Release bundle to make it
+easier to customize this script. The source is available in
+[GitHub](https://github.com/honganqi/GenshinImpact-TwitchRedeemWisherGUI)
+* Starting from this release onward, the release versions will
+have an additional bundle including most updated version of this
+GUI frontend application.
+* Added the `js/local_creds.js` file for the GUI application. 
+* Added Faruzan, Layla, Nahida, and Wanderer as characters.
+### Changed
+* Overhauled the backend authentication process:
+  * If your Twitch token is expired when the browser source is
+opened, you will now be notified with a clickable link to
+re-authenticate.
+  * If you are using the GUI application to authenticate, your
+Twitch username and tokens will not be stored in the database
+and will be stored locally in your computer instead. 
+  * If you are **NOT** using the GUI application to authenticate,
+there is now no need to indicate your Twitch username in the
+`user_settings.js` file. The authentication process will do this
+automatically and any username indicated there will be
+overwritten by it. You will still need to indicate your Channel
+Point Reward there.
+* Changed the way the Dull Blade meme pull works: You can now
+indicate which Star Value you want to put the Dull Blades in by
+putting "Dull Blade" as the item in that Star Value. For
+example, if you wanted to change it from the original 3-star to
+a 1-star pull, you can add a 1-star array and put "Dull Blade"
+there to free up the 3-star for other characters or items.
+Before this change, this script assumed that 3-star pulls are
+all Dull Blades.
+
 ## 1.1 - 2022/12/22
 ### Changed
 * This script will now check the OAuth Token on load. If it is
