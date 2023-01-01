@@ -103,3 +103,19 @@ h1 {margin: 0; padding: 0; text-align: center; font-size: 4rem; position: relati
 	0% {transform: scale(1); opacity: 1;}
 	100% {transform: scale(10); opacity: 0;}
 }
+
+
+
+#link_to_token {
+	text-align: center;
+	display: block;
+	padding: 1em;
+	background: #59f;
+	color: #fff;
+	text-decoration: none;
+	width: 50%;
+	text-shadow: 2px 2px 2px rgb(0 0 0 / 30%);
+	min-width: 400px;
+	margin: 2em auto;
+	border-radius: 15px;
+}

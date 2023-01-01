@@ -1,4 +1,4 @@
-var channelName = 'honganqi';
-var redeemTitle = 'Genshin Wish';
+var channelName = '';
+var redeemTitle = '';
 
 var animation_duration = 8000;

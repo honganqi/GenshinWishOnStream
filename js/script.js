@@ -1,5 +1,5 @@
-/* Genshin Impact: Twitch Redeem Wisher v1.1 by honganqi */
-/* https://github.com/honganqi/GenshinImpact-TwitchRedeemWisher */
+/* Genshin Impact: Wish On Stream v1.2 by honganqi */
+/* https://github.com/honganqi/GenshinWishOnStream */
 
 var scope = encodeURIComponent('channel:read:redemptions');
 var ws;
@@ -25,6 +25,15 @@ let previousRate = 0;
 rates.forEach((rate, star) => {
 	cases[previousRate + rate] = star;
 	previousRate += rate;
+});
+
+
+var dullBladeStar = -1;
+choices.forEach(function(characters, key) {
+	characters.forEach(function(character) {
+		if (character == "Dull Blade")
+			dullBladeStar = key;
+	});
 });
 
 
@@ -54,6 +63,15 @@ function addToQueue(redeem) {
 }
 
 
+function getCharacterElement(character) {
+	return elementDictionary[character];
+}
+
+function getDullBlades() {
+	let choice = Math.floor(Math.random() * (dullBlades.length));
+	return dullBlades[choice];
+}
+
 
 function genshinWish() {
 	let audio = new Audio("sounds/character_appearance.ogg");
@@ -61,10 +79,10 @@ function genshinWish() {
 	let star = randomInt(cases);
 	let choice = Math.floor(Math.random() * (choices[star].length));
 	let character = choices[star][choice];
-	element = 'img/elements/' + elementDictionary(character);
+	element = 'img/elements/' + getCharacterElement(character);
 	character_image_filename = `img/characters/${character}`;
 
-	if (star <= 3)
+	if ((dullBladeStar > 0) && (star == dullBladeStar))
 		character_image_filename = 'img/characters/dull_blades/' + getDullBlades();
 
 	// load all existing images
@@ -194,6 +212,8 @@ function writeToFile(user, character) {
 
 
 
+// these 5 functions below are thanks to Twitch Developers over at GitHub
+// https://github.com/twitchdev/pubsub-javascript-sample
 
 // Source: https://www.thepolyglotdeveloper.com/2015/03/create-a-random-nonce-string-using-javascript/
 function nonce(length) {
@@ -243,6 +263,7 @@ function connect(topics) {
 
     ws.onmessage = function(event) {
         message = JSON.parse(event.data);
+
         if (message.error && (message.error == "ERR_BADAUTH")) {
         	//alert("OAuth Token is missing. Kindly contact the developer.");
         }
@@ -277,6 +298,8 @@ function connect(topics) {
 
 
 
+
+
 function authUrl() {
 	var clientId = 'wjwf4wolayi04w61r9jfj242z2j5v8';
 	var redirectURI = 'https://sidestreamnetwork.net/GenshinTwitchRedeems';
@@ -304,24 +327,31 @@ function authUrl() {
 
 
 function getChannelID(channelName) {
+	channelName = channelName.trim();
 	var sendState = sessionStorage.twitchOAuthState;
     return $.ajax({
-        url: "https://sidestreamnetwork.net/GenshinTwitchRedeems/genshinWisher.php",
+        url: "https://sidestreamnetwork.net/GenshinTwitchRedeems/",
         dataType: "json",
-        data: {type: "info", channelName: channelName, state: sendState}        
+        data: {channelName: channelName}
     });
 }
 
 
 
-getChannelID(channelName).done(function(data) {
-	if (data.error !== undefined) {
-		console.log("Twitch OAuth Token not found or expired. Redirecting to Twitch for authorization...");
-		window.location.href = twitchAuthURL;
-		//document.getElementById('wrapper').innerHTML = '<a id="link_to_token" href="' + twitchAuthURL + '">Twitch OAuth Token is not yet set. Please click here to authorize the Genshin Wisher to read your channel point redemptions on Twitch.</a>';
-	}
-    var channel_id = data.id;
-    twitchOAuthToken = data.token;
+if (localToken != "") {
+	var channel_id = channelID;
+    twitchOAuthToken = localToken;
     topics = ['channel-points-channel-v1.' + channel_id];
     connect(topics);
-});
+} else {
+	getChannelID(channelName).done(function(data) {
+		if (data.error !== undefined) {
+			console.log("Twitch OAuth Token not found or expired. Redirecting to Twitch for authorization...");
+			document.getElementById('wrapper').innerHTML = '<a id="link_to_token" href="' + twitchAuthURL + '">' + data.error + '</a>';
+		}
+	    var channel_id = data.id;
+	    twitchOAuthToken = data.token;
+	    topics = ['channel-points-channel-v1.' + channel_id];
+	    connect(topics);
+	});	
+}
