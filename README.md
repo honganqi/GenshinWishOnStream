@@ -12,7 +12,7 @@ depends on your belief in rituals.
 ## IMPORTANT: DATA PRIVACY
 * Upon first use, this script stores your Twitch channel name in
 my database to simplify the process of acquiring and refreshing
-Twitch access tokens for you. Please do not use this if you do
+Twitch access tokens for you. Please do not continue if you do
 not agree to this. But please know that I will not sell or trade
 the data in any way. I will bring that list/database with me to
 my grave (hopefully not too soon).
@@ -27,6 +27,9 @@ any database.
 Points enabled
 * MAYBE some familiarity with JavaScript but it depends if and
 how you want to customize this
+
+## Tutorial Video
+* [YouTube - LET YOUR VIEWERS WISH ON STREAM! Genshin Impact: Wish On Stream tutorial!](https://youtu.be/rmQtHKb_tLc)
 
 ## Installation
 * To get started, download the ZIP file of the latest release
@@ -52,11 +55,6 @@ you extracted Genshin Wisher files.
 * An optional GUI (graphical user interface) app is available in 
 [GitHub](https://github.com/honganqi/GenshinWishOnStreamGUI)
 to make it easier to customize this script
-
-## Change of Account/Channel Name
-* Please note that if you change your account/channel name,
-you may need to do the whole "load the HTML file in any browser
-thing and give read permissions" thing.
 
 ## Customization
 * Three star items are included by default like in the
