@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in
 this file.
 
-## 1.2 - 2022/12/31
+## 1.2 - 2023/01/02
 ### Added
 * Added a GUI application in the Release bundle to make it
 easier to customize this script. The source is available in
@@ -34,6 +34,10 @@ a 1-star pull, you can add a 1-star array and put "Dull Blade"
 there to free up the 3-star for other characters or items.
 Before this change, this script assumed that 3-star pulls are
 all Dull Blades.
+### Fixed
+* Fixed the bug where a star with 0% pull rate still had a
+chance to get pulled
+
 
 ## 1.1 - 2022/12/22
 ### Changed

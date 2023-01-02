@@ -23,8 +23,10 @@ let cases = {};
 let previousRate = 0;
 
 rates.forEach((rate, star) => {
-	cases[previousRate + rate] = star;
-	previousRate += rate;
+	if (rate > 0) {
+		cases[previousRate + rate] = star;
+		previousRate += rate;
+	}
 });
 
 
