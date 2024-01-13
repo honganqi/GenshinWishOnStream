@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in
 this file.
 
+## 1.3 - 2024/01/14
+### Added
+* Added Alhaitham, Baizhu, Charlotte, Chevreuse, Dehya, Freminet, Kaveh,
+Kirara, Lynette, Lyney, Mika, Navia, Neuvillette, Wriothesley, and
+Yaoyao as characters.
+### Changed
+* Changed choices from array of strings to array of Character/Element
+pairs
+### Removed
+* Removed Element array
+
 ## 1.2 - 2023/01/02
 ### Added
 * Added a GUI application in the Release bundle to make it

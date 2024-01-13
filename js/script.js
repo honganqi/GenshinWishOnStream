@@ -33,7 +33,7 @@ rates.forEach((rate, star) => {
 var dullBladeStar = -1;
 choices.forEach(function(characters, key) {
 	characters.forEach(function(character) {
-		if (character == "Dull Blade")
+		if (character.name == "Dull Blade")
 			dullBladeStar = key;
 	});
 });
@@ -81,8 +81,8 @@ function genshinWish() {
 	let star = randomInt(cases);
 	let choice = Math.floor(Math.random() * (choices[star].length));
 	let character = choices[star][choice];
-	element = 'img/elements/' + getCharacterElement(character);
-	character_image_filename = `img/characters/${character}`;
+	element = 'img/elements/' + character.element;
+	character_image_filename = `img/characters/${character.name}`;
 
 	if ((dullBladeStar > 0) && (star == dullBladeStar))
 		character_image_filename = 'img/characters/dull_blades/' + getDullBlades();
@@ -107,7 +107,7 @@ function genshinWish() {
 		document.getElementById("wrapper").innerHTML = `
 		<div id="container">
 		<img src="${character_image_filename}" id="character">
-		<h1 id="name">${character}</h1>
+		<h1 id="name">${character.name}</h1>
 		<h2 id="redeemer"><span id="actual_name">${redeemer}</span></h2>
 		<img src="${element}" id="element">
 		<div id="stars"></div>
@@ -201,7 +201,7 @@ function writeToFile(user, character) {
 
 	xmlhttp.open("POST","writer.php",true);
 	xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-	xmlhttp.send(`name=${user}&character=${character}`);
+	xmlhttp.send(`name=${user}&character=${character.name}`);
 }
 
 

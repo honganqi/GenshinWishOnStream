@@ -10,15 +10,18 @@ used to affect your pulls in-game, it won't. Or maybe it could,
 depends on your belief in rituals.
 
 ## IMPORTANT: DATA PRIVACY
-* Upon first use, this script stores your Twitch channel name in
+* ~~Upon first use, this script stores your Twitch channel name in
 my database to simplify the process of acquiring and refreshing
 Twitch access tokens for you. Please do not continue if you do
 not agree to this. But please know that I will not sell or trade
 the data in any way. I will bring that list/database with me to
-my grave (hopefully not too soon).
+my grave (hopefully not too soon).~~
 * If you use the GUI frontend application, your data will be
 stored locally on your computer and no data will be stored in
 any database.
+* For crying out loud, please just use the GUI to set this up.
+Even I have already forgotten how to set up the non-GUI version.
+Get the file with the "WithGUI" in its filename in [Releases](https://github.com/honganqi/GenshinWishOnStream/releases).
 
 ## Requirements
 * Any streaming software that accepts browser sources
@@ -29,32 +32,41 @@ Points enabled
 how you want to customize this
 
 ## Tutorial Video
-* [YouTube - LET YOUR VIEWERS WISH ON STREAM! Genshin Impact: Wish On Stream tutorial!](https://youtu.be/rmQtHKb_tLc)
+[![LET YOUR VIEWERS WISH ON STREAM! Genshin Impact: Wish On Stream tutorial!](https://img.youtube.com/vi/rmQtHKb_tLc/0.jpg)](https://youtu.be/rmQtHKb_tLc)
 
 ## Installation
-* To get started, download the ZIP file of the latest release
+1. To get started, download the ZIP file of the latest release
 and extract this anywhere.
-* Go to the `js` folder, use a text editor and modify the
-`user_settings.js` file to change the `channelName` and 
-`redeemTitle` into your own settings. `channelName` is the
-name of your channel on Twitch and `redeemTitle` is the name of
-your Channel Point Reward (the one with the customizable image,
-cost, cooldown, etc).
-* If this is your first time to use this, you will need to open
-the `Genshin_Wish.html` file in any browser. You will then be
-redirected automatically to Twitch and will be asked to give
-this script permission to read your channel point redemptions.
-After permission is given, you may close the file.
-* Add the `Genshin_Wish.html` file as a browser source in your OBS.
+2. Launch the GUI executable `Genshin Impact - Wish On Stream GUI.exe`.
+3. In the GUI, go to Settings and click on the `Connect to Twitch`
+to connect the app to your Twitch account.
+4. If this is your first time to use this, you will be automatically
+redirected to Twitch and will be asked to give permission to the app
+to read your channel point rewards. You may close the tab after you
+give permission.
+5. Your channel point rewards will appear in the list. Select the reward
+you intend to use for the wisher and click on `Save`.
+6. Add the `Genshin_Wish.html` file as a browser source in your OBS.
 * The suggested dimensions of your browser source depends on
 your full screen size but it is typically 1920x1080.
-* To get the necessary font, go to your game's installation,
+* To get the optionally necessary font, go to your game's installation
 then navigate to `<game folder>/Genshin Impact Game/GenshinImpact_Data/StreamingAssets/MiHoYoSDKRes/HttpServerResources/font`
 and copy the `zh-ch.ttf` file to the `fonts` folder of where
 you extracted Genshin Wisher files.
 * An optional GUI (graphical user interface) app is available in 
 [GitHub](https://github.com/honganqi/GenshinWishOnStreamGUI)
 to make it easier to customize this script
+* ~~Go to the `js` folder, use a text editor and modify the
+`user_settings.js` file to change the `channelName` and 
+`redeemTitle` into your own settings. `channelName` is the
+name of your channel on Twitch and `redeemTitle` is the name of
+your Channel Point Reward (the one with the customizable image,
+cost, cooldown, etc).~~
+* ~~If this is your first time to use this, you will need to open
+the `Genshin_Wish.html` file in any browser. You will then be
+redirected automatically to Twitch and will be asked to give
+this script permission to read your channel point redemptions.
+After permission is given, you may close the file.~~
 
 ## Customization
 * Three star items are included by default like in the
@@ -73,10 +85,10 @@ value you would like the characters to have. For example, if you
 wanted to change Nilou into a 14-star character, add
 `"rates[14] = 0.25"` in `rates.js` for a 0.25% pull rate and add
 `choices[14] = ["Nilou"]` in `choices.js`.
-* ELEMENTS: Please remember to add the respective elements of
+* ~~ELEMENTS: Please remember to add the respective elements of
 your characters in the `elementDictionary` array in the
 `choices.js` file. The images of these elements are found in
-`img/elements`.
+`img/elements`.~~
 * PORTRAITS: Characters in `choices.js` need to have their 
 portraits in the `img/characters` folder. The images need to be
 named exactly how they are named in `choices.js` (e.g.
@@ -96,7 +108,7 @@ modifying the items in `choices[]` in the `dullBlades` array in
 the `choices.js` file and add their images in the
 `img/characters/dull_blades` folder.
 * DISPLAY DURATION: Redemptions are displayed 8 seconds by
-default. You may customize this by modifying the
+default before they fade out. You may customize this by modifying the
 `animation_duration` variable in the `user_settings.js` file.
 Value is in milliseconds
 
@@ -104,7 +116,7 @@ Value is in milliseconds
 [![Buy me A Coffee](http://sidestreamnetwork.net/wp-content/uploads/2021/06/white-button-e1624263691285.png "Buy Me A Coffee")](https://buymeacoffee.com/honganqi)
 
 This was created for the Genshin Impact community with
-love and care  and is provided without charging anybody.
+love and care and is provided without charging anybody.
 If this has somehow made you smile or made your day brighter,
 please feel free to send me a smile, coffee, pizza, a gamepad,
 t-shirt, or anything! Your support means a lot to me as it
