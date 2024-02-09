@@ -9,20 +9,6 @@ they disappear. If for some reason you thought this could be
 used to affect your pulls in-game, it won't. Or maybe it could,
 depends on your belief in rituals.
 
-## IMPORTANT: DATA PRIVACY
-* ~~Upon first use, this script stores your Twitch channel name in
-my database to simplify the process of acquiring and refreshing
-Twitch access tokens for you. Please do not continue if you do
-not agree to this. But please know that I will not sell or trade
-the data in any way. I will bring that list/database with me to
-my grave (hopefully not too soon).~~
-* If you use the GUI frontend application, your data will be
-stored locally on your computer and no data will be stored in
-any database.
-* For crying out loud, please just use the GUI to set this up.
-Even I have already forgotten how to set up the non-GUI version.
-Get the file with the "WithGUI" in its filename in [Releases](https://github.com/honganqi/GenshinWishOnStream/releases).
-
 ## Requirements
 * Any streaming software that accepts browser sources
 * A Twitch channel
@@ -32,6 +18,10 @@ Points enabled
 how you want to customize this
 
 ## Tutorial Video
+**NOTE**: As of February 9, 2024, I realized that the tutorial
+included in this documentation is still very confusing; as is the
+second one I have on my YouTube channel. I will be making an
+updated tutorial using this updated GUI app.
 [![LET YOUR VIEWERS WISH ON STREAM! Genshin Impact: Wish On Stream tutorial!](https://img.youtube.com/vi/rmQtHKb_tLc/0.jpg)](https://youtu.be/rmQtHKb_tLc)
 
 ## Installation
@@ -46,6 +36,9 @@ to read your channel point rewards. You may close the tab after you
 give permission.
 5. Your channel point rewards will appear in the list. Select the reward
 you intend to use for the wisher and click on `Save`.
+**IMPORTANT**: As of February 9, 2024, the GUI still has the bug of
+showing the list with blank text after connecting to Twitch for the
+first time. Just save and relaunch the app to see the actual list.
 6. Add the `Genshin_Wish.html` file as a browser source in your OBS.
 * The suggested dimensions of your browser source depends on
 your full screen size but it is typically 1920x1080.
@@ -53,64 +46,48 @@ your full screen size but it is typically 1920x1080.
 then navigate to `<game folder>/Genshin Impact Game/GenshinImpact_Data/StreamingAssets/MiHoYoSDKRes/HttpServerResources/font`
 and copy the `zh-ch.ttf` file to the `fonts` folder of where
 you extracted Genshin Wisher files.
-* An optional GUI (graphical user interface) app is available in 
-[GitHub](https://github.com/honganqi/GenshinWishOnStreamGUI)
-to make it easier to customize this script
-* ~~Go to the `js` folder, use a text editor and modify the
-`user_settings.js` file to change the `channelName` and 
-`redeemTitle` into your own settings. `channelName` is the
-name of your channel on Twitch and `redeemTitle` is the name of
-your Channel Point Reward (the one with the customizable image,
-cost, cooldown, etc).~~
-* ~~If this is your first time to use this, you will need to open
-the `Genshin_Wish.html` file in any browser. You will then be
-redirected automatically to Twitch and will be asked to give
-this script permission to read your channel point redemptions.
-After permission is given, you may close the file.~~
 
 ## Customization
-* Three star items are included by default like in the
-game: 3-star, 4-star, and 5-star. You may add or remove these
-in the `rates.js` file in the `js` folder. Please remember that
-the rates should have a total of 100. To customize this, the
-syntax is `"rates[x] = y"` where "x" is the star value and "y"
-is the pull rate (out of 100). For example, you can add 6-star
-and 7-star characters by adding to the `rates` variable by
-adding `"rates[6] = 5"` and `"rates[7] = 2"` to add 5% chance
-to pull a 6-star and 2% chance to pull a 7-star character.
-* CHARACTERS: You may add or remove characters by going to the
-`js` folder and editing the `choices.js` file with a text editor.
-Add them to the `choices[x]` variable where `x` is the star
-value you would like the characters to have. For example, if you
-wanted to change Nilou into a 14-star character, add
-`"rates[14] = 0.25"` in `rates.js` for a 0.25% pull rate and add
-`choices[14] = ["Nilou"]` in `choices.js`.
-* ~~ELEMENTS: Please remember to add the respective elements of
-your characters in the `elementDictionary` array in the
-`choices.js` file. The images of these elements are found in
-`img/elements`.~~
-* PORTRAITS: Characters in `choices.js` need to have their 
-portraits in the `img/characters` folder. The images need to be
-named exactly how they are named in `choices.js` (e.g.
-case-sensitive). Three (3) types of images are accepted: WEBP,
-PNG, and SVG listed in order of priority. e.g. If a WEBP file is
-found, it will use that. If the WEBP file does not exist and a
-PNG file is found, it will use that instead.
+* STARS: To add a rarity level, go to the `Characters` panel
+and add a **Star Value**. The app automatically detects your lowest
+and your highest star values and lets you select only 1 star higher
+than the highest and 1 star lower than the lowest. Note that the total
+**Pull Rate** should be 100%.
+* PULL RATE: Default pull rates are: 65% for 3 stars, 25% for 4 stars,
+and 10% for 5 stars. Feel free to customize this.
+* CHARACTERS: You can add characters by first adding their images
+in the `<scriptPath>/img/characters` folder. Next, add their names
+in the GUI's `Characters` panel. *Remember to use the exact same
+spelling including the capitalization.*
+* ELEMENTS: You can add elements by first adding their images
+in the `<scriptPath>/img/elements` folder. Next, type their names
+in the GUI's `Characters` panelbeside the names of the characters
+you want the elements associated to. *Remember to use the exact
+same spelling including the capitalization.*
+* IMAGES: The script accepts WebP, PNG, and SVG image formats in
+that order. E.g. If both `Paimon.webp` and `Paimon.png` exists,
+the script will use the WebP version. Remember to use small
+letters for the file extensions.
 * DULL BLADE MEME PULLS: I added Dull Blade pulls for humor
 which are selected randomly. By default, these are 3-star items.
-I also included a "LUL" element as their element by default. You
-can change the star value by changing the key in the array (e.g.
-`choices[3]` to `choices[1]`) provided you add the necessary
-star values in between and their characters. You can remove this
-by removing the `Dull Blade` item in all of the `choices`
-arrays. You can add more items to the Dull Blade pulls by
-modifying the items in `choices[]` in the `dullBlades` array in
-the `choices.js` file and add their images in the
-`img/characters/dull_blades` folder.
+You can remove this by removing the `Dull Blade` item in the
+`Characters` panel. I also included a "LUL" element as their
+element by default. You can add more items to the Dull Blade
+pulls by going to the `Dull Blades` panel. Like Characters,
+remember to add their images in the `img/characters/dull_blades`
+folder.
 * DISPLAY DURATION: Redemptions are displayed 8 seconds by
 default before they fade out. You may customize this by modifying the
-`animation_duration` variable in the `user_settings.js` file.
-Value is in milliseconds
+`Animation Duration` setting in the `Settings` panel. Value is in
+milliseconds.
+
+## To-Do
+I plan to change the way to use the `Characters` and `Dull Blades`
+panels because as I see it, the app is still a bit too finicky to
+use. The app should scan the `img/characters` folder for usable
+images and list them in the panels. If possible, I want the panels
+to list the names in button-like items where they can be dragged
+into the x-star values.
 
 ## Donations
 [![Buy me A Coffee](http://sidestreamnetwork.net/wp-content/uploads/2021/06/white-button-e1624263691285.png "Buy Me A Coffee")](https://buymeacoffee.com/honganqi)
@@ -131,6 +108,11 @@ Please feel free to join me on Discord!
 ## Credits
 [Genshin Impact Wiki | Fandom](https://genshin-impact.fandom.com/wiki/Genshin_Impact_Wiki)
 for the character portraits and the element icons
+
+## Data Privacy
+* This app does not collect any information nor does it send it
+anywhere. The permission it needs from Twitch is needed only to
+read channel point redemptions from your channel.
 
 ## Notes
 * The author of this software will not be liable to any

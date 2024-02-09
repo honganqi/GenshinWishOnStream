@@ -2,6 +2,25 @@
 All notable changes to this project will be documented in
 this file.
 
+## 1.4 - 2024/02/09
+### Added
+* Added Xianyun and Gaming as characters
+* Added the GUI (Graphical User Interface) tool into a combined package
+to minimize the complexity of this project
+### Changed
+* Changed the design of the page that shows after app was given
+authorization
+### Fixed
+* The "Connect to Twitch" button now forcibly resets the authorization
+token. It now asks for permission everytime it is used as it should. It
+no longer assumes that the user was the previous user and does not
+assume anymore that it was previously permitted.
+### Removed
+* Removed the option of using a remote database to store and load
+Twitch channel information. All data is now only stored locally on your
+computers.
+* Removed the repository of the GUI to include it in this one.
+
 ## 1.3 - 2024/01/14
 ### Added
 * Added Alhaitham, Baizhu, Charlotte, Chevreuse, Dehya, Freminet, Kaveh,
@@ -12,6 +31,14 @@ Yaoyao as characters.
 pairs
 ### Removed
 * Removed Element array
+
+## GUI 1.2 - 2023/01/14
+### Changed
+* Adapted to the changes to the script where array of strings
+were changed to array of character-element pairs
+### Fixed
+* Fixed issue where user is unable to reconnect Twitch account
+if the token is expired.
 
 ## 1.2 - 2023/01/02
 ### Added
@@ -49,6 +76,28 @@ all Dull Blades.
 * Fixed the bug where a star with 0% pull rate still had a
 chance to get pulled
 
+## GUI 1.1 - 2023/01/02
+### Added
+* A log file is now created when the app crashes
+* Added "Genshin_Wish.html" to the list of files to check
+### Changed
+* Upon first launch, the app now looks for the script files in
+the same folder
+### Fixed
+* Fixed the "Connect to Twitch" button not working on initial
+launch
+* Fixed the issue where the Channel Point Rewards were not
+being listed after connecting to Twitch
+* Fixed numerous issues with adding and deleting columns of star
+values in the Characters page
+* Deleting the last remaining column of star value is no longer
+possible
+* The app now remembers your settings when it is updated to a 
+newer version
+* Fixed a logic error in checking the saved Wisher path
+
+## GUI 1.0 - 2022/12/31
+* initial release
 
 ## 1.1 - 2022/12/22
 ### Changed
