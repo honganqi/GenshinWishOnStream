@@ -348,7 +348,6 @@ namespace GenshinImpact_WishOnStreamGUI
         {
             List<string> filesToCheck = new()
             {
-                "user_settings.js",
                 "rates.js",
                 "choices.js",
                 "local_creds.js",
