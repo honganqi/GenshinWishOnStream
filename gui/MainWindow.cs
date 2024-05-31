@@ -260,7 +260,6 @@ namespace GenshinImpact_WishOnStreamGUI
             using StreamReader sr = new(Path.Combine(wisherPath, "js/choices.js"));
             int currentStarValue = 0;
             bool isInsideCharacterBracket = false;
-            bool isInsideElementBracket = false;
             bool isInsideDullBladesBracket = false;
             List<CharacterElementPair> charElemPairList = new();
 
@@ -304,24 +303,6 @@ namespace GenshinImpact_WishOnStreamGUI
                     starList[currentStarValue][charElemPair.Name].Star = currentStarValue;
                     starList[charElemPair.Name].Element = charElemPair.Element;
                 }
-                /*
-                else if (elementDictionaryStartIndex >= 0)
-                {
-                    isInsideElementBracket = true;
-                }
-                else if ((elementDictionaryEndIndex >= 0) && (isInsideElementBracket))
-                {
-                    isInsideElementBracket = false;
-                }
-                else if (isInsideElementBracket && line.Contains(':'))
-                {
-                    string[] pair = line.Split(':');
-                    string character = pair[0].Replace("\"", "").Replace("\'", "").Trim();
-                    string element = pair[1].Replace("\"", "").Replace("\'", "").Replace(",", "").Trim();
-
-                    //starList[character].Element = element;
-                }
-                */
                 else if (dullBladesStartIndex >= 0)
                 {
                     isInsideDullBladesBracket = true;
@@ -350,11 +331,15 @@ namespace GenshinImpact_WishOnStreamGUI
             {
                 "rates.js",
                 "choices.js",
-                "local_creds.js",
             };
             List<string> failedFiles = new();
             if (!File.Exists(Path.Combine(pathCheck, "Genshin_Wish.html")))
                 failedFiles.Add("Genshin_Wish.html");
+
+            // check for local_creds.js file, create it if it doesn't exist
+            if (!File.Exists(Path.Combine(pathCheck, "js/", "local_creds.js")))
+                authVar.SaveCreds(userInfo: new(), saveToFile: true, revoke: true);
+
             foreach (string toCheck in filesToCheck)
             {
                 if (!File.Exists(Path.Combine(pathCheck, "js/", toCheck)))
@@ -1122,7 +1107,7 @@ namespace GenshinImpact_WishOnStreamGUI
                 {
                     int starValue = charList.Key;
                     CharacterListInStar charListInStar = charList.Value;
-                    charListInStar.Sort();
+                    charListInStar.SortList();
                     starList.AddStar(starValue);
                     AddCharactersColumn(charList.Key, -1, charListInStar);
                 }

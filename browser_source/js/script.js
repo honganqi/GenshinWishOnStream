@@ -317,43 +317,54 @@ function authUrl() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-function getChannelID(channelName) {
-	channelName = channelName.trim();
-	var sendState = sessionStorage.twitchOAuthState;
-    return $.ajax({
-        url: "https://sidestreamnetwork.net/GenshinTwitchRedeems/",
-        dataType: "json",
-        data: {channelName: channelName}
-    });
+async function checkToken(localToken) {
+	try {
+		var url = 'https://id.twitch.tv/oauth2/validate';
+		fetch(url, {
+			headers: {Authorization: `Bearer ${localToken}`}
+		})
+		.then(resp => resp.json())
+		.then(json => {
+			console.log(json);
+			return json;
+		})		
+	} catch (error) {
+		console.log(error)
+	}
+	return false;
 }
 
 
 
+errorMessage = 'Twitch token is missing or invalid. Please use the Genshin Wisher app to get one.';
+
 if (localToken != "") {
-	var channel_id = channelID;
-    twitchOAuthToken = localToken;
-    topics = ['channel-points-channel-v1.' + channel_id];
-    connect(topics);
-} else {
-	getChannelID(channelName).done(function(data) {
-		if (data.error !== undefined) {
-			console.log("Twitch OAuth Token not found or expired. Redirecting to Twitch for authorization...");
-			document.getElementById('wrapper').innerHTML = '<a id="link_to_token" href="' + twitchAuthURL + '">' + data.error + '</a>';
-		}
-	    var channel_id = data.id;
-	    twitchOAuthToken = data.token;
-	    topics = ['channel-points-channel-v1.' + channel_id];
+	user = checkToken(localToken);
+	if (user !== false) {
+		errorMessage = '';
+	    twitchOAuthToken = localToken;
+	    topics = ['channel-points-channel-v1.' + channelID];	// channelID should be in the "local_creds.js" file
 	    connect(topics);
-	});	
+	}
+}
+
+if (errorMessage != '') {
+    htmlContent = "<style>" +
+        "#container { display: flex; height: 100vh; justify-content: center; align-items: center; font-family: sans-serif; }" +
+        "#contents { display: flex; flex-wrap: wrap; gap: 0; min-width: 400px; }" +
+        "#link_to_token {" +
+            "font-weight: bold; font-size: 1.2rem; text-align: center; display: block; padding: 1em; margin: 0 auto;" +
+            "background: #59f; color: #fff; text-decoration: none; width: 50%; text-shadow: 2px 2px 2px rgb(0 0 0 / 30%); border-radius: 15px;" +
+        "}" +
+        "h1, .elements { flex-basis: 100%; text-align: center; }" +
+        "h1 { margin: 0; color: #666; } " +
+        ".error { background: #f95; }" +
+        "</style>";
+    htmlContent += "<div id=\"container\">" +
+        "<div id=\"contents\">" +
+        "<h1>Genshin Impact: Wish On Stream</h1>" +
+        "<div id=\"link_to_token\">" + errorMessage + "</div>" +
+        "</div>" +
+        "</div>";
+    document.getElementById('wrapper').innerHTML = htmlContent;	
 }

@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -43,7 +44,7 @@ namespace GenshinImpact_WishOnStreamGUI
                 Add(character);
             }
         }
-        public void Sort()
+        public void SortList()
         {
             _characters = this.OrderBy(c => c.CharacterName).ToList();
             Clear();
@@ -60,7 +61,7 @@ namespace GenshinImpact_WishOnStreamGUI
 
     public class StarList : SortedDictionary<int, CharacterListInStar>
     {
-        public CharacterListInStar this[int starValue]
+        public new CharacterListInStar this[int starValue]
         {
             get
             {
@@ -269,7 +270,8 @@ namespace GenshinImpact_WishOnStreamGUI
             string errors = "";
 
             if (!File.Exists(pathSettings))
-                errors += " - The \"local_creds.js\" file was not found in the \"" + wisherPath + "\"js folder.\n";
+                MessageBox.Show("The \"local_creds.js\" file was not found in the \"" + wisherPath + "\"js folder.\nOne will be created for you.");
+
             if (!revoke)
             {
                 if (userInfo.Name == "")
@@ -421,7 +423,7 @@ namespace GenshinImpact_WishOnStreamGUI
                         "<h1>Genshin Impact: Wish On Stream</h1>" +
                         elementsRow +
                         "<div id=\"link_to_token\">" +
-                        "You may now close this window.<br>Refresh the Genshin Wisher browser source in your streaming software." +
+                        "You may now close this window.<br>Click on the \"Save\" button and refresh the Genshin Wisher browser source in your streaming software.<br>You may also close the Genshin Wisher app now." +
                         "</div>" +
                         "</div>" +
                         "</div>";

@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in
 this file.
 
+## 1.5 - 2024/05/31
+### Added
+* Added Chiori and Arlecchino as characters
+* Browser source: Added a function to check and validate the Twitch token if it exists
+### Changed
+* Release will not include the required `local_creds.js` in the `js` folder anymore. This is to prevent users from accidentally overwriting their existing settings and credentials. Instead, the app will create one if it doesn't exist.
+### Removed
+* Browser source: Remove all code related to acquiring a Twitch token without the app (backlog)
+* Browser source: Removed the JQuery dependency (backlog)
+* Browser source: General code cleanup
+
 ## 1.4 - 2024/02/09
 ### Added
 * Added Xianyun and Gaming as characters
