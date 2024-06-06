@@ -10,7 +10,6 @@ this file.
 * Release will not include the required `local_creds.js` in the `js` folder anymore. This is to prevent users from accidentally overwriting their existing settings and credentials. Instead, the app will create one if it doesn't exist.
 ### Removed
 * Browser source: Remove all code related to acquiring a Twitch token without the app (backlog)
-* Browser source: Removed the JQuery dependency (backlog)
 * Browser source: General code cleanup
 
 ## 1.4 - 2024/02/09

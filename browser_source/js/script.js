@@ -165,7 +165,6 @@ function imageExists(image_url, img_type) {
     var img = new Image();
     img.src = image_url;
     img.onload = () => {
-    	console.log("success: " + image_url);
     	switch (img_type) {
     		case "character":
     			character_image_filename = image_url;
@@ -177,7 +176,6 @@ function imageExists(image_url, img_type) {
     	deferred.resolve();
     };
     img.onerror = () => {
-    	console.log("error: " + image_url);
     	deferred.resolve();
     }
     return deferred.promise();
@@ -325,11 +323,9 @@ async function checkToken(localToken) {
 		})
 		.then(resp => resp.json())
 		.then(json => {
-			console.log(json);
 			return json;
 		})		
 	} catch (error) {
-		console.log(error)
 	}
 	return false;
 }
