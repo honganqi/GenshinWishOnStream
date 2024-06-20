@@ -134,15 +134,15 @@ namespace GenshinImpact_WishOnStreamGUI
             {
                 await AcquireToken(access_token);
 
-                var rewards = await GetCustomRewards();
-                _mainwindow.UpdateSettingsRewards(rewards);
+                user.Rewards = await GetCustomRewards();
+                _mainwindow.SetUserInfo(user);
                 SaveCreds(user);
                 _mainwindow.DisplayConnectionErrors(connectionErrors);
             }
             else
             {
-                var rewards = await GetCustomRewards();
-                _mainwindow.UpdateSettingsRewards(rewards);
+                user.Rewards = await GetCustomRewards();
+                _mainwindow.SetUserInfo(user);
                 SaveCreds(user);
                 _mainwindow.DisplayConnectionErrors(connectionErrors);
             }
@@ -447,6 +447,7 @@ namespace GenshinImpact_WishOnStreamGUI
         long _expiry;
         string _redeem;
         int _duration;
+        List<string> _rewards;
         public UserInfo()
         {
             _name = "";
@@ -455,6 +456,7 @@ namespace GenshinImpact_WishOnStreamGUI
             _expiry = 0;
             _redeem = "";
             _duration = 8000;
+            _rewards = [];
         }
         public UserInfo(string name, string id)
         {
@@ -464,6 +466,7 @@ namespace GenshinImpact_WishOnStreamGUI
             _expiry = 0;
             _redeem = "";
             _duration = 8000;
+            _rewards = [];
         }
         public string Name => _name;
         public string ID => _id;
@@ -471,6 +474,25 @@ namespace GenshinImpact_WishOnStreamGUI
         public int Duration { get => _duration; set => _duration = value; }
         public string Token { get => _token; set => _token = value; }
         public long TokenExpiry { get => _expiry; set => _expiry = value; }
+        public List<string> Rewards { get => _rewards; set => _rewards = value;  }
+        public string CheckUser()
+        {
+            if ((_name == "") || (_id == "") || (_token == ""))
+                return "Connect your Twitch account to begin.";
+
+            if (!CheckExpiry())
+                return "Token expired. Refresh your token by clicking on the \"Connect to Twitch\" button.";
+            return "";
+        }
+        public bool CheckExpiry()
+        {
+            long rightNow = DateTimeOffset.Now.ToUnixTimeSeconds();
+
+            if (_expiry > 0 || rightNow < _expiry)
+                return true;
+
+            return false;
+        }
     }
 
     #region JSON classes

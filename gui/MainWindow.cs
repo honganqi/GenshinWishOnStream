@@ -79,35 +79,30 @@ namespace GenshinImpact_WishOnStreamGUI
             if (currentVersionSplit[2] == "0") currentVersionSplit.RemoveAt(2);
             labelVerNum.Text = "v" + string.Join(".", currentVersionSplit) + " by honganqi";
 
+            string pathCheck = "";
+
             // set path if exists
             if (Properties.Settings.Default.path != "")
             {
                 if (Directory.Exists(Properties.Settings.Default.path))
-                {
-                    string pathCheck = Properties.Settings.Default.path;
-                    List<string> failedFiles = CheckSettings(pathCheck);
-                    CheckFiles(failedFiles, pathCheck);
-                    if (failedFiles.Count > 0)
-                        SwitchPanel(panelSettings);
-                    else
-                        SwitchPanel(panelCharacters);
-                }
+                    pathCheck = Properties.Settings.Default.path;
                 else
-                {
                     MessageBox.Show("The previously specified folder does not exist (anymore): \n" + Properties.Settings.Default.path + "\n\nPlease point this app to where the \"Genshin_Wish.html\" file is.");
                     SwitchPanel(panelSettings);
-                }
             }
             else
-            {
-                string pathCheck = Directory.GetCurrentDirectory();
-                List<string> failedFiles = CheckSettings(pathCheck);
-                CheckFiles(failedFiles, pathCheck);
-                if (failedFiles.Count > 0)
-                    SwitchPanel(panelSettings);
-                else
-                    SwitchPanel(panelCharacters);
-            }
+                pathCheck = Directory.GetCurrentDirectory();
+
+            // check user and settings
+            List<string> failedFiles = CheckSettings(pathCheck);
+            CheckFiles(failedFiles, pathCheck);
+            string userInitError = userInfo.CheckUser();
+            if ((failedFiles.Count == 0) && (userInitError == ""))
+                SwitchPanel(panelCharacters);
+            else
+                if (userInitError != "")
+                MessageBox.Show(userInitError, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            SwitchPanel(panelSettings);
 
             // set window state
             if (Properties.Settings.Default.windowState == "Maximized")
@@ -143,7 +138,7 @@ namespace GenshinImpact_WishOnStreamGUI
         public void RevokeToken()
         {
             authVar.RevokeToken();
-            cmbRedeems.Items.Clear();
+            cmbRedeems.Items.Clear(); 
         }
 
         public void UpdateSettingsPanel(UserInfo userTransit)
@@ -152,9 +147,8 @@ namespace GenshinImpact_WishOnStreamGUI
             SetUserInfo(userInfo);
         }
 
-        public void UpdateSettingsRewards(List<string> rewards)
+        public void UpdateSettingsRewards()
         {
-            SetRewards(rewards);
             SetUserInfo(userInfo);
         }
 
@@ -1198,6 +1192,13 @@ namespace GenshinImpact_WishOnStreamGUI
         {
             if (ControlInvokeRequired(txtUsername, () => SetUserInfo(userInfo))) return;
             txtUsername.Text = userInfo.Name;
+
+            // set redeems before selecting
+            if (cmbRedeems.InvokeRequired)
+                cmbRedeems.Invoke(new MethodInvoker(() => SetRewards()));
+            else
+                SetRewards();
+
             if (userInfo.Name != "")
                 cmbRedeems.SelectedIndex = cmbRedeems.FindStringExact(userInfo.Redeem);
             else
@@ -1226,16 +1227,11 @@ namespace GenshinImpact_WishOnStreamGUI
             }
         }
 
-        public void SetRewards(List<string> rewards)
+        public void SetRewards()
         {
-            if (cmbRedeems.InvokeRequired)
-                cmbRedeems.Invoke(new Action<List<string>>(SetRewards), new object[] { rewards });
-            else
-            {
-                cmbRedeems.Items.Clear();
-                foreach (string reward in rewards)
-                    cmbRedeems.Items.Add(reward);
-            }
+            cmbRedeems.Items.Clear();
+            foreach (string reward in userInfo.Rewards)
+                cmbRedeems.Items.Add(reward);
         }
 
 

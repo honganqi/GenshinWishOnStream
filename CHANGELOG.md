@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in
 this file.
 
+## 1.6 - 2024/06/21
+### Added
+* Added Clorinde and Sethos as characters
+### Fixed
+* GUI: If Twitch credentials are missing on launch, user is sent to the Settings panel instead of the Characters panel with a message saying so
+* GUI: If Twitch token is expired on launch, user is sent to the Settings panel instead of the Characters panel with a message saying so
+* GUI: Fixed issue where saved selected Channel Points Redeem did not load on launch
+* GUI: Fixed the issue where, upon connecting a Twitch account to the app, the user's Twitch Channel Points Redeems did not appear in the list
+
 ## 1.5 - 2024/05/31
 ### Added
 * Added Chiori and Arlecchino as characters

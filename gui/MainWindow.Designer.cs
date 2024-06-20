@@ -592,11 +592,11 @@ namespace GenshinImpact_WishOnStreamGUI
             // labelDuration
             // 
             this.labelDuration.AutoSize = true;
-            this.labelDuration.Location = new System.Drawing.Point(71, 145);
+            this.labelDuration.Location = new System.Drawing.Point(73, 145);
             this.labelDuration.Name = "labelDuration";
-            this.labelDuration.Size = new System.Drawing.Size(120, 17);
+            this.labelDuration.Size = new System.Drawing.Size(118, 17);
             this.labelDuration.TabIndex = 34;
-            this.labelDuration.Text = "Animation Duration";
+            this.labelDuration.Text = "Character Duration";
             // 
             // labelPathNotice
             // 
@@ -620,11 +620,11 @@ namespace GenshinImpact_WishOnStreamGUI
             // labelRedeem
             // 
             this.labelRedeem.AutoSize = true;
-            this.labelRedeem.Location = new System.Drawing.Point(56, 176);
+            this.labelRedeem.Location = new System.Drawing.Point(50, 176);
             this.labelRedeem.Name = "labelRedeem";
-            this.labelRedeem.Size = new System.Drawing.Size(135, 17);
+            this.labelRedeem.Size = new System.Drawing.Size(141, 17);
             this.labelRedeem.TabIndex = 31;
-            this.labelRedeem.Text = "Channel Point Reward";
+            this.labelRedeem.Text = "Channel Points Reward";
             // 
             // labelUsername
             // 

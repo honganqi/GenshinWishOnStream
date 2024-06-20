@@ -1,4 +1,4 @@
-/* Genshin Impact: Wish On Stream v1.4 by honganqi */
+/* Genshin Impact: Wish On Stream v1.6 by honganqi */
 /* https://github.com/honganqi/GenshinWishOnStream */
 
 var scope = encodeURIComponent('channel:read:redemptions');
