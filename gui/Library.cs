@@ -162,7 +162,8 @@ namespace GenshinImpact_WishOnStreamGUI
                     TwitchToken receivedTokenInfo = JsonConvert.DeserializeObject<TwitchToken>(validatePage.Result);
                     user = new(receivedTokenInfo.Username, receivedTokenInfo.User_ID)
                     {
-                        Token = token
+                        Token = token,
+                        Redeem = (user != null) ? user.Redeem : ""
                     };
                     long timenow = DateTimeOffset.Now.ToUnixTimeSeconds();
                     long tokenExpiresInSeconds = int.Parse(receivedTokenInfo.TokenExpiresIn);
