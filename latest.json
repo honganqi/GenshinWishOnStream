@@ -1,6 +1,6 @@
 {
 	"version": "1.7.0.0",
-	"release_date": "2024-06-21T03:38:08",
-	"download_url": "https://github.com/honganqi/GenshinWishOnStream/releases/download/v1.6/GenshinWishOnStream.1.6.zip",
-	"description": "Added Clorinde and Sethos and some fixes to the GUI"
+	"release_date": "2024-08-30T19:56:08",
+	"download_url": "https://github.com/honganqi/GenshinWishOnStream/releases/download/v1.7/GenshinWishOnStream.1.7.zip",
+	"description": "Added Twitch chat commands feature and Mualani etc"
 }
