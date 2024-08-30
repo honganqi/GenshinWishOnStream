@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in
 this file.
 
+## 1.7 - 2024/08/30
+### Added
+* Added feature to use chat commands for Twitch streams (hopefully coming soon to YouTube too)
+* GUI: Added checkboxes to toggle Twitch Channel Points Rewards and Twitch chat
+* GUI: Twitch Channel Points is now disabled if the user is not a Twitch Affiliate or Partner yet to prevent confusion
+* Added new variables in the `local_creds.js` file. Missing variables will be added without breaking the existing values.
+* Added Sigewinne, Emilie, Kachina, and Mualani as characters
+### Fixed
+* GUI: Settings now does not save when not specifically instructed to
+### Removed
+* GUI: Removed deprecated button to locate `Genshin_Wish.html`. GUI will always assume the HTML file is in the same directory.
+
+
 ## 1.6 - 2024/06/21
 ### Added
 * Added Clorinde and Sethos as characters

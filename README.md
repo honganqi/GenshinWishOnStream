@@ -7,19 +7,20 @@ This is a simple tool for more viewer engagement using characters from the gacha
 ## Requirements
 * Any streaming software that accepts browser sources
 * A Twitch channel
-* Your Twitch channel should have Viewer Rewards and Channel Points enabled
+* Your Twitch channel should have Viewer Rewards and Channel Points enabled (use chat commands if you don't)
 * MAYBE some familiarity with JavaScript but it depends if and how you want to customize this
 
 ## Tutorial Video
-**NOTE**: As of February 9, 2024, I realized that the tutorial included in this documentation is still very confusing; as is the second one I have on my YouTube channel. I will be making an updated tutorial using this updated GUI app.
-[![LET YOUR VIEWERS WISH ON STREAM! Genshin Impact: Wish On Stream tutorial!](https://img.youtube.com/vi/rmQtHKb_tLc/0.jpg)](https://youtu.be/rmQtHKb_tLc)
+[![2024 TUTORIAL UPDATE! Genshin Wisher Twitch Redeem](https://img.youtube.com/vi/rmQtHKb_tLc/0.jpg)](https://youtu.be/Y6KX97bVEeg)
 
 ## Installation
 1. To get started, download the ZIP file of the latest release and extract this anywhere.
 2. Launch the GUI executable `Genshin Impact - Wish On Stream GUI.exe`.
 3. In the GUI, go to Settings and click on the `Connect to Twitch` to connect the app to your Twitch account.
 4. If this is your first time to use this, you will be automatically redirected to Twitch and will be asked to give permission to the app to read your channel point rewards. You may close the tab after you give permission.
-5. Your channel point rewards will appear in the list. Select the reward you intend to use for the wisher and click on `Save`.
+5. If you are a Twitch Partner or Affiliate, your channel point rewards will appear in the list.
+6. You can also choose to use chat commands by inputting your preferred chat command. Include special characters if you want. This is typically the `!` character. Please note that `@` and `/` are not usable for this purpose.
+7. Select the reward you intend to use for the wisher and/or indicate your preferred chat command and click on `Save`.
 **IMPORTANT**: As of February 9, 2024, the GUI still has the bug of showing the list with blank text after connecting to Twitch for the first time. Just save and relaunch the app to see the actual list. 
 6. Add the `Genshin_Wish.html` file as a browser source in your OBS.
     * The suggested dimensions of your browser source depends on your full screen size but it is typically 1920x1080.

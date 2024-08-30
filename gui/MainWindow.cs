@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Net;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace GenshinImpact_WishOnStreamGUI
 {
@@ -162,56 +163,80 @@ namespace GenshinImpact_WishOnStreamGUI
         #region Fetchers
         private bool GetLocalUser()
         {
-            List<string> userSettingsContents = new();
-            int searchIndex = 0;
+            Dictionary<string, string> userSettingsContents = new();
+            string pattern = @"var\s+(\w+)\s*=\s*(?:""([^""]*)""|'([^']*)'|(\d+|true|false))\s*;";
+            Regex regex = new(pattern);
+
+            List<string> searchTerms = new()
+            {
+                "channelName",
+                "channelID",
+                "localToken",
+                "localTokenExpiry",
+                "redeemTitle",
+                "redeemEnabled",
+                "twitchCommandPrefix",
+                "twitchCommandEnabled",
+                "animation_duration"
+            };
+
+
             using (StreamReader sr = new(Path.Combine(wisherPath, "js/local_creds.js")))
             {
                 while (sr.Peek() >= 0)
                 {
                     string line = sr.ReadLine().Trim();
-                    List<string> searchTerms = new()
+                    MatchCollection matches = regex.Matches(line);
+                    foreach (Match match in matches)
                     {
-                        "var channelName",
-                        "var channelID",
-                        "var localToken",
-                        "var localTokenExpiry",
-                        "var redeemTitle",
-                        "var animation_duration",
-                    };
-                    int strpos = line.IndexOf(searchTerms[searchIndex]);
-                    if (strpos > -1)
-                    {
-                        string[] pair = line.Split('=');
-                        string value = pair[1].Trim().Replace("\"", "").Replace("'", "").Replace(";", "");
-                        userSettingsContents.Add(value);
-                        searchIndex++;
+                        // verify property exists in the list of allowed properties
+                        string property = match.Groups[1].Value;
+                        if (searchTerms.Contains(property))
+                        {
+                            string stringValue = match.Groups[2].Value;
+                            string singleQuotedValue = match.Groups[3].Value;
+                            string nonQuotedValue = match.Groups[4].Value;
+                            string value;
+
+                            if (!string.IsNullOrEmpty(stringValue))
+                                value = stringValue; // Double-quoted string value
+                            else if (!string.IsNullOrEmpty(singleQuotedValue))
+                                value = singleQuotedValue; // Single-quoted string value
+                            else
+                                value = nonQuotedValue; // Numeric or boolean value
+                            userSettingsContents[property] = value;
+                        }
                     }
                 }
             }
+
             if (userSettingsContents.Count > 0)
             {
-                string name = userSettingsContents[0];
-                string id = userSettingsContents[1];
+                string name = userSettingsContents.ContainsKey("channelName") ? userSettingsContents["channelName"] : "";
+                string id = userSettingsContents.ContainsKey("channelID") ? userSettingsContents["channelID"] : "";
                 userInfo = new(name, id);
-                string token = userSettingsContents[2];
-                userInfo.Token = token;
+                userInfo.Token = userSettingsContents.ContainsKey("localToken") ? userSettingsContents["localToken"] : "";
                 userTokenized = true;
-                string redeem = userSettingsContents[4];
-                userInfo.Redeem = redeem;
-                if (int.TryParse(userSettingsContents[3], out int expiry))
+                userInfo.Redeem = userSettingsContents.ContainsKey("redeemTitle") ? userSettingsContents["redeemTitle"] : "";
+                userInfo.RedeemEnabled = (userSettingsContents.ContainsKey("redeemEnabled") && bool.Parse(userSettingsContents["redeemEnabled"])) ? bool.Parse(userSettingsContents["redeemEnabled"]) : false;
+                userInfo.TwitchCommandPrefix = userSettingsContents.ContainsKey("twitchCommandPrefix") ? userSettingsContents["twitchCommandPrefix"] : "";
+                userInfo.TwitchCommandEnabled = (userSettingsContents.ContainsKey("twitchCommandEnabled") && bool.Parse(userSettingsContents["twitchCommandEnabled"])) ? bool.Parse(userSettingsContents["twitchCommandEnabled"]) : false;
+                if (!userSettingsContents.ContainsKey("redeemEnabled") && userInfo.Redeem != "")
+                    userInfo.RedeemEnabled = true;
+                if (userSettingsContents.ContainsKey("localTokenExpiry") && int.TryParse(userSettingsContents["localTokenExpiry"], out int expiry))
                 {
                     userInfo.TokenExpiry = expiry;
-                    if (int.TryParse(userSettingsContents[5], out int duration))
+                    if (int.TryParse(userSettingsContents["animation_duration"], out int duration))
                         userInfo.Duration = duration;
                 }
 
                 authVar.user = userInfo;
 
                 // get new token if user exists
-                if (token != "")
+                if (userInfo.Token != "")
                 {
                     SetUserInfo(userInfo);
-                    authVar.GetUserInfo(token);
+                    authVar.GetUserInfo(userInfo.Token);
                 }
 
                 return true;
@@ -424,19 +449,6 @@ namespace GenshinImpact_WishOnStreamGUI
 
                             writer.WriteLine("];\n");
                         }
-
-                        /*
-                        // character elements
-                        writer.WriteLine("\n\n");
-                        writer.WriteLine("let elementDictionary = {");
-                        foreach (KeyValuePair<string, string> elemPair in characterElements)
-                        {
-                            string charName = elemPair.Key;
-                            string element = elemPair.Value;
-                            writer.WriteLine("\t\"" + charName + "\": \"" + element + "\",");
-                        }
-                        writer.WriteLine("};");
-                        */
 
                         // dull blades
                         if (dullBlades.Count > 0)
@@ -1169,22 +1181,19 @@ namespace GenshinImpact_WishOnStreamGUI
         #region Settings Panel Functions
         public void SetPath(string newpath)
         {
-            labelPath.Text = newpath;
             cmbRedeems.Enabled = true;
             txtDuration.Enabled = true;
-            labelPathNotice.Hide();
         }
 
         public void ExtractUserInfo(ref UserInfo info)
         {
-            string redeem = cmbRedeems.Text;
-            if (redeem.Trim() != "")
-                info.Redeem = redeem;
-            else
-                info.Redeem = "";
-            string durationString = txtDuration.Text;
-            if (durationString.Trim() != "")
-                if (int.TryParse(durationString, out int duration))
+            info.Redeem = cmbRedeems.Text.Trim();
+            info.RedeemEnabled = info.Redeem != "" && chkRedeems.Checked;
+            info.TwitchCommandPrefix = txtCommand.Text.Trim();
+            info.TwitchCommandEnabled = info.TwitchCommandPrefix != "" && chkCommand.Checked;
+            info.Duration = 8000;
+            if (txtDuration.Text.Trim() != "")
+                if (int.TryParse(txtDuration.Text.Trim(), out int duration))
                     info.Duration = duration;
         }
 
@@ -1199,11 +1208,27 @@ namespace GenshinImpact_WishOnStreamGUI
             else
                 SetRewards();
 
-            if (userInfo.Name != "")
-                cmbRedeems.SelectedIndex = cmbRedeems.FindStringExact(userInfo.Redeem);
-            else
-                cmbRedeems.Items.Clear();
-                
+            chkRedeems.Checked = userInfo.RedeemEnabled;
+
+            if (userInfo.BroadcasterType != "affiliate" && userInfo.BroadcasterType != "partner")
+            {
+                chkRedeems.Enabled = false;
+                cmbRedeems.Enabled = false;
+                cmbRedeems.Text = "";
+            } else
+            {
+                chkRedeems.Enabled = true;
+                cmbRedeems.Enabled = true;
+                if (userInfo.Name != "")
+                    cmbRedeems.SelectedIndex = cmbRedeems.FindStringExact(userInfo.Redeem);
+                else
+                    cmbRedeems.Items.Clear();
+            }
+
+            txtCommand.Text = userInfo.TwitchCommandPrefix;
+
+            chkCommand.Checked = userInfo.TwitchCommandEnabled;
+
             txtDuration.Text = userInfo.Duration.ToString();
 
             long rightNow = DateTimeOffset.Now.ToUnixTimeSeconds();
@@ -1368,6 +1393,18 @@ namespace GenshinImpact_WishOnStreamGUI
                 panelDullBlades.Controls.Remove(control);
         }
         #endregion
+
+        private void chkCommand_CheckedChanged(object sender, EventArgs e)
+        {
+            userInfo.TwitchCommandEnabled = chkCommand.Checked;
+            txtCommand.Enabled = chkCommand.Checked;
+        }
+
+        private void chkRedeems_CheckedChanged(object sender, EventArgs e)
+        {
+            userInfo.RedeemEnabled = chkRedeems.Checked;
+            cmbRedeems.Enabled = chkRedeems.Checked;
+        }
     }
 
 

@@ -163,8 +163,14 @@ namespace GenshinImpact_WishOnStreamGUI
                     user = new(receivedTokenInfo.Username, receivedTokenInfo.User_ID)
                     {
                         Token = token,
-                        Redeem = (user != null) ? user.Redeem : ""
+                        Redeem = (user != null) ? user.Redeem : "",
+                        RedeemEnabled = user.RedeemEnabled,
+                        TwitchCommandPrefix = user.TwitchCommandPrefix,
+                        TwitchCommandEnabled = user.TwitchCommandEnabled
                     };
+
+                    // get User Info to determine channel points eligibility
+                    user.BroadcasterType = await GetUserInfo(user);
                     long timenow = DateTimeOffset.Now.ToUnixTimeSeconds();
                     long tokenExpiresInSeconds = int.Parse(receivedTokenInfo.TokenExpiresIn);
                     user.TokenExpiry = timenow + tokenExpiresInSeconds;
@@ -198,9 +204,14 @@ namespace GenshinImpact_WishOnStreamGUI
                     if (user.ID == claimResult.User_ID)
                     {
                         userInfo.Redeem = user.Redeem;
+                        userInfo.RedeemEnabled = user.RedeemEnabled;
+                        userInfo.TwitchCommandPrefix = user.TwitchCommandPrefix;
+                        userInfo.TwitchCommandEnabled = user.TwitchCommandEnabled;
                         userInfo.Duration = user.Duration;
                     }
 
+                    // get User Info to determine channel points eligibility
+                    userInfo.BroadcasterType = await GetUserInfo(user);
                     user = userInfo;
                 }
             }
@@ -232,6 +243,19 @@ namespace GenshinImpact_WishOnStreamGUI
             }
 
             SaveCreds(user, true, true);
+        }
+
+        private async Task<string> GetUserInfo(UserInfo userInfo)
+        {
+            using HttpRequestMessage requestMessage = new(HttpMethod.Get, "https://api.twitch.tv/helix/users?id=" + userInfo.ID);
+            requestMessage.Headers.Authorization = new("Bearer", userInfo.Token);
+            requestMessage.Headers.Add("Client-Id", CLIENT_ID);
+            HttpResponseMessage claimResponse = await Interwebs.httpClient.SendAsync(requestMessage);
+            Task<string> claimPage = claimResponse.Content.ReadAsStringAsync();
+            dynamic claimResult = JsonConvert.DeserializeObject(claimPage.Result);
+            string broadcasterType = claimResult["data"][0]["broadcaster_type"];
+
+            return broadcasterType;
         }
 
         private async Task<List<string>> GetCustomRewards()
@@ -288,15 +312,24 @@ namespace GenshinImpact_WishOnStreamGUI
 
             if (errors == "")
             {
-                errors = "User settings saved successfully!";
                 _mainwindow.UpdateSettingsPanel(userInfo);
-                using StreamWriter writer = new(pathSettings);
-                writer.WriteLine("var channelName = \'" + userInfo.Name + "\';");
-                writer.WriteLine("var channelID = \'" + userInfo.ID + "\';");
-                writer.WriteLine("var localToken = \'" + userInfo.Token + "\';");
-                writer.WriteLine("var localTokenExpiry = " + userInfo.TokenExpiry + ";");
-                writer.WriteLine("var redeemTitle = \'" + userInfo.Redeem + "\';");
-                writer.WriteLine("var animation_duration = " + userInfo.Duration + ";");
+                if (saveToFile)
+                {
+                    if (!userInfo.RedeemEnabled && !userInfo.TwitchCommandEnabled)
+                        MessageBox.Show("You have not selected any way for your viewers to wish. Settings saved anyway.", "No option selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    
+                    errors = "User settings saved successfully!";
+                    using StreamWriter writer = new(pathSettings);
+                    writer.WriteLine("var channelName = \'" + userInfo.Name + "\';");
+                    writer.WriteLine("var channelID = \'" + userInfo.ID + "\';");
+                    writer.WriteLine("var localToken = \'" + userInfo.Token + "\';");
+                    writer.WriteLine("var localTokenExpiry = " + userInfo.TokenExpiry + ";");
+                    writer.WriteLine("var redeemTitle = \'" + userInfo.Redeem + "\';");
+                    writer.WriteLine("var redeemEnabled = " + (userInfo.RedeemEnabled ? "true" : "false") + ";");
+                    writer.WriteLine("var twitchCommandPrefix = \'" + userInfo.TwitchCommandPrefix + "\';");
+                    writer.WriteLine("var twitchCommandEnabled = " + (userInfo.TwitchCommandEnabled ? "true" : "false") + ";");
+                    writer.WriteLine("var animation_duration = " + userInfo.Duration + ";");
+                }
             }
             else
             {
@@ -447,7 +480,11 @@ namespace GenshinImpact_WishOnStreamGUI
         string _token;
         long _expiry;
         string _redeem;
+        bool _redeemEnabled;
         int _duration;
+        string _twitchCommandPrefix;
+        bool _twitchCommandEnabled;
+        string _broadcasterType;
         List<string> _rewards;
         public UserInfo()
         {
@@ -456,7 +493,11 @@ namespace GenshinImpact_WishOnStreamGUI
             _token = "";
             _expiry = 0;
             _redeem = "";
+            _redeemEnabled = false;
             _duration = 8000;
+            _twitchCommandPrefix = "";
+            _twitchCommandEnabled = false;
+            _broadcasterType = "";
             _rewards = [];
         }
         public UserInfo(string name, string id)
@@ -466,13 +507,21 @@ namespace GenshinImpact_WishOnStreamGUI
             _token = "";
             _expiry = 0;
             _redeem = "";
+            _redeemEnabled = false;
             _duration = 8000;
+            _twitchCommandPrefix = "";
+            _twitchCommandEnabled = false;
+            _broadcasterType = "";
             _rewards = [];
         }
         public string Name => _name;
         public string ID => _id;
         public string Redeem { get => _redeem; set => _redeem = value; }
+        public bool RedeemEnabled { get => _redeemEnabled; set => _redeemEnabled = value; }
         public int Duration { get => _duration; set => _duration = value; }
+        public string TwitchCommandPrefix { get => _twitchCommandPrefix; set => _twitchCommandPrefix = value; }
+        public bool TwitchCommandEnabled { get => _twitchCommandEnabled; set => _twitchCommandEnabled = value; }
+        public string BroadcasterType { get => _broadcasterType; set => _broadcasterType = value; }
         public string Token { get => _token; set => _token = value; }
         public long TokenExpiry { get => _expiry; set => _expiry = value; }
         public List<string> Rewards { get => _rewards; set => _rewards = value;  }
