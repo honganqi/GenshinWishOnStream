@@ -164,7 +164,7 @@ namespace GenshinImpact_WishOnStreamGUI
         private bool GetLocalUser()
         {
             Dictionary<string, string> userSettingsContents = new();
-            string pattern = @"var\s+(\w+)\s*=\s*(?:""([^""]*)""|'([^']*)'|(\d+|true|false))\s*;";
+            string pattern = @"var\s+(\w+)\s*=\s*(?:""([^""]*)""|'([^'\\]*(?:\\'[^'\\]*)*)'|(\d+|true|false))\s*;";
             Regex regex = new(pattern);
 
             List<string> searchTerms = new()
@@ -201,7 +201,7 @@ namespace GenshinImpact_WishOnStreamGUI
                             if (!string.IsNullOrEmpty(stringValue))
                                 value = stringValue; // Double-quoted string value
                             else if (!string.IsNullOrEmpty(singleQuotedValue))
-                                value = singleQuotedValue; // Single-quoted string value
+                                value = singleQuotedValue.Replace(@"\'", @"'"); // Single-quoted string value including escaped single quotes
                             else
                                 value = nonQuotedValue; // Numeric or boolean value
                             userSettingsContents[property] = value;

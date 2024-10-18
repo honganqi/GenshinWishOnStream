@@ -322,11 +322,11 @@ namespace GenshinImpact_WishOnStreamGUI
                     using StreamWriter writer = new(pathSettings);
                     writer.WriteLine("var channelName = \'" + userInfo.Name + "\';");
                     writer.WriteLine("var channelID = \'" + userInfo.ID + "\';");
-                    writer.WriteLine("var localToken = \'" + userInfo.Token + "\';");
+                    writer.WriteLine("var localToken = \'" + userInfo.Token.Replace("'", @"\'") + "\';");
                     writer.WriteLine("var localTokenExpiry = " + userInfo.TokenExpiry + ";");
                     writer.WriteLine("var redeemTitle = \'" + userInfo.Redeem + "\';");
                     writer.WriteLine("var redeemEnabled = " + (userInfo.RedeemEnabled ? "true" : "false") + ";");
-                    writer.WriteLine("var twitchCommandPrefix = \'" + userInfo.TwitchCommandPrefix + "\';");
+                    writer.WriteLine("var twitchCommandPrefix = \'" + userInfo.TwitchCommandPrefix.Replace("'", @"\'") + "\';");
                     writer.WriteLine("var twitchCommandEnabled = " + (userInfo.TwitchCommandEnabled ? "true" : "false") + ";");
                     writer.WriteLine("var animation_duration = " + userInfo.Duration + ";");
                 }

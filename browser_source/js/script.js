@@ -1,4 +1,4 @@
-/* Genshin Impact: Wish On Stream v1.7 by honganqi */
+/* Genshin Impact: Wish On Stream v1.7.1 by honganqi */
 /* https://github.com/honganqi/GenshinWishOnStream */
 
 var wrapper = document.getElementById('wrapper');

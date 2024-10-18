@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in
 this file.
 
+## 1.7.1 - 2024/10/18
+### Added
+* Added Kinich and Xilonen as characters
+### Fixed
+* Fixed issue where the browser source crashes if the name of the Twitch Channel Points Reward has single quotes in it
+
 ## 1.7 - 2024/08/30
 ### Added
 * Added feature to use chat commands for Twitch streams (hopefully coming soon to YouTube too)

@@ -1,6 +1,6 @@
 {
-	"version": "1.7.0.0",
-	"release_date": "2024-08-30T19:56:08",
-	"download_url": "https://github.com/honganqi/GenshinWishOnStream/releases/download/v1.7/GenshinWishOnStream.1.7.zip",
-	"description": "Added Twitch chat commands feature and Mualani etc"
+	"version": "1.7.1.0",
+	"release_date": "2024-10-18T11:17:51",
+	"download_url": "https://github.com/honganqi/GenshinWishOnStream/releases/download/v1.7.1/GenshinWishOnStream.1.7.1.zip",
+	"description": "Fixed redeem names with special characters, added Xilonen etc"
 }
