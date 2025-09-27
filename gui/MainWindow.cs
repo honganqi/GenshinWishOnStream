@@ -1286,7 +1286,7 @@ namespace GenshinImpact_WishOnStreamGUI
                 string clientId = AuthThings.CLIENT_ID;
                 string redirectURI = HttpServer.localhostAddress.TrimEnd('/');
                 string state = Nonce(15);
-                string scope = System.Web.HttpUtility.UrlEncode("channel:read:redemptions");
+                string scope = System.Web.HttpUtility.UrlEncode("channel:read:redemptions chat:read");
 
                 string url = "https://id.twitch.tv/oauth2/authorize" +
                     "?response_type=token" +

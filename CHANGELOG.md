@@ -10,7 +10,7 @@ this file.
 ### Fixed
 * WORKING AGAIN! Overhauled the backend: migrated from PubSub to EventSub
 ### Removed
-* Removed dependency on JQuery and parseIRC
+* Removed dependency on JQuery
 
 ## 1.7.1 - 2024/10/18
 ### Added
