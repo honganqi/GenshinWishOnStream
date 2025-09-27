@@ -1,4 +1,4 @@
-/* Genshin Impact: Wish On Stream v1.7.1 by honganqi */
+/* Genshin Impact: Wish On Stream v1.8 by honganqi */
 /* https://github.com/honganqi/GenshinWishOnStream */
 
 var wrapper = document.getElementById('wrapper');
@@ -35,28 +35,27 @@ choices.forEach(function(characters, key) {
 
 
 const runThis = async () => {
-    for (let i = lastItemRun; i < queue.length; i++) {
-        isRunning = true;
-        await wish(queue[i]);
-        lastItemRun++;
-        isRunning = false;
-    }
+	for (let i = lastItemRun; i < queue.length; i++) {
+		isRunning = true;
+		await wish(queue[i]);
+		lastItemRun++;
+		isRunning = false;
+	}
 }
 
 const wish = () => new Promise(function(resolve, reject) {
 	genshinWish();
-    setTimeout(function() {
-        genshinExit();
-        resolve('genshin_wish');
-    }, animation_duration);
-
+	setTimeout(function() {
+		genshinExit();
+		resolve('genshin_wish');
+	}, animation_duration);
 });
 
 function addToQueue(redeem) {
-    queue.push(redeem);
-    if (!isRunning) {
-        runThis();
-    }
+	queue.push(redeem);
+	if (!isRunning) {
+		runThis();
+	}
 }
 
 
@@ -94,7 +93,7 @@ function genshinWish() {
 	});
 
 	// play animation once all images are checked and loaded
-	$.when.apply(null, loaders).done(function() {
+	Promise.all(loaders).then(function() {
 		setTimeout(function () {
 			audio.play();
 		}, 500);
@@ -115,7 +114,6 @@ function genshinWish() {
 			putStars(star);
 		}, 500);
 	});
-
 
 }
 
@@ -148,24 +146,24 @@ function randomInt(cases) {
 }
 
 function imageExists(image_url, img_type) {
-	var deferred = $.Deferred();
-    var img = new Image();
-    img.src = image_url;
-    img.onload = () => {
-    	switch (img_type) {
-    		case "character":
-    			character_image_filename = image_url;
-    			break;
-    		case "element":
-    			element = image_url;
-    			break;
-    	}
-    	deferred.resolve();
-    };
-    img.onerror = () => {
-    	deferred.resolve();
-    }
-    return deferred.promise();
+	return new Promise((resolve) => {
+		const img = new Image();
+		img.src = image_url;
+		img.onload = () => {
+			switch (img_type) {
+				case "character":
+					character_image_filename = image_url;
+					break;
+				case "element":
+					element = image_url;
+					break;
+			}
+			resolve();
+		};
+		img.onerror = () => {
+			resolve();
+		};
+	});
 }
 
 function writeToFile(user, character) {
@@ -212,221 +210,46 @@ function displayTokenExpired(errorMessage) {
 
 
 
+const backendUrl = 'https://genshin-twitch.sidestreamnetwork.net';
 
-
-
-class TwitchMonitor {
-	heartbeatInterval = 1000 * 60; //ms between PING's
-	reconnectInterval = 1000 * 3; //ms to wait before reconnect
-	heartbeatHandle;
-	scope = '';
-	ws;
-	twitchOAuthToken = '';
-	topics = '';
-	message = {};
-	
-	constructor({ type, token, scope, topics = '' }) {
-		this.scope = encodeURIComponent(scope);
-		this.twitchOAuthToken = token;
-		this.topics = topics;
-		const wsSource = type == 'chat'
-			? 'wss://irc-ws.chat.twitch.tv'
-			: 'wss://pubsub-edge.twitch.tv'
-		this.ws = new WebSocket(wsSource);
-	}
-
-	// these 5 functions below are thanks to Twitch Developers over at GitHub
-	// https://github.com/twitchdev/pubsub-javascript-sample
-
-	// Source: https://www.thepolyglotdeveloper.com/2015/03/create-a-random-nonce-string-using-javascript/
-	nonce(length) {
-		var text = "";
-		var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-		for (var i = 0; i < length; i++) {
-			text += possible.charAt(Math.floor(Math.random() * possible.length));
-		}
-		return text;
-	}
-
-	heartbeat() {
-		this.message = {
-			type: 'PING'
-		};
-		this.ws.send(JSON.stringify(this.message));
-	}
-
-	listen() {
-		this.message = {
-			type: 'LISTEN',
-			nonce: this.nonce(15),
-			data: {
-				topics: this.topics,
-				auth_token: this.twitchOAuthToken
-			}
-		};
-		this.ws.send(JSON.stringify(this.message));
-	}
-
-	connect() {
-		const ws = this.ws;
-		ws.onopen = () => {
-			console.log('Genshin Wisher: ready to accept Twitch Channel Points Redemptions (' + redeemTitle + ')');
-			this.listen();
-			this.heartbeat();
-			this.heartbeatHandle = setInterval(this.heartbeat.bind(this), this.heartbeatInterval);	
-		}
-	
-		ws.onerror = function(error) {
-
-		}
-	
-		ws.onmessage = function(event) {
-			this.message = JSON.parse(event.data);
-	
-			if (this.message.error && (this.message.error == "ERR_BADAUTH")) {
-				var errorMessage = 'Twitch token is missing or invalid. Please use the Genshin Wisher app to get one.';
-				wrapper.innerHTML(displayTokenExpired(errorMessage));
-			}
-	
-			if (this.message.type == 'RECONNECT') {
-				setTimeout(connect, reconnectInterval);
-			}
-
-			if (this.message.data) {
-				var jsonmessage = JSON.parse(this.message.data.message);
-	
-				if ((jsonmessage.type == "reward-redeemed") && jsonmessage.data.redemption) {
-					var redeem = jsonmessage.data.redemption;
-					redeemer = redeem.user.display_name;
-					if (redeem.reward.title == redeemTitle)
-						addToQueue("wish");
-				}
-			}
-		}
-	
-		ws.onclose = function() {
-			clearInterval(this.heartbeatHandle);
-			setTimeout(connect, this.reconnectInterval);
-		};
-	}
-
-	chat() {
-		const cs = this.ws;
-        
-		cs.onopen = () => {
-			cs.send('PASS oauth:' + this.twitchOAuthToken + '\r\n');
-			cs.send('NICK piknik_rules\r\n');
-			cs.send('CAP REQ :twitch.tv/commands twitch.tv/tags\r\n');
-
-			this.heartbeat();
-			this.heartbeatHandle = setInterval(this.heartbeat.bind(this), this.heartbeatInterval);
-		};
-	
-		cs.onerror = function(error) {
-	
-		};
-	
-		cs.onmessage = function(event) {
-			event.data.split('\r\n').forEach(async line => {
-				if (!line) return;
-				var message = parseIRC(line);
-				if (!message.command) return;
-
-				switch (message.command) {
-					case "PING":
-						cs.send('PONG ' + message.params[0]);
-						return;
-					case "001":
-						cs.send('JOIN #' + channelName + '\r\n');
-						return;
-					case "JOIN":
-						console.log('Genshin Wisher: ready to accept Twitch commands (' + twitchCommandPrefix + ')');
-						return;
-					case "CLEARMSG":
-					case "CLEARCHAT":
-						return;
-					case "PRIVMSG":
-						if (message.params[0] !== '#' + channelName || !message.params[1] || !message.params[1].toLowerCase().startsWith(twitchCommandPrefix)) return;
-						redeemer = message.params[0].replace('#', '');
-						addToQueue("wish");
-						return;
-					case "NOTICE":
-						// need to test expired tokens
-						if (message.params && message.params[1]) {
-							switch (message.params[1]) {
-								case "Login authentication failed":
-									cs.send('PART #' + channelName + '\r\n')
-									clearInterval(this.heartbeatHandle);
-									var errorMessage = 'Twitch token is missing or invalid. Please use the Genshin Wisher app to get one.';
-									wrapper.innerHTML(displayTokenExpired(errorMessage));
-							}
-						}
-						return;
-				}
-			});
-		};
-	
-		cs.onclose = function() {
-
-		};
-    }    
-}
-
-
-
-
-
-
-
-
-
-
-
-async function checkToken(localToken) {
-	try {
-		var url = 'https://id.twitch.tv/oauth2/validate';
-		fetch(url, {
-			headers: {Authorization: `Bearer ${localToken}`}
+// Subscribe to redemptions
+async function subscribe() {
+	const genshinWisherClientId = 'rs83ihxx7l4k7jjeprsiz03ofvly8g';
+	const res = await fetch(`${backendUrl}/subscribe`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			'Client-Id': genshinWisherClientId
+		},
+		body: JSON.stringify({
+			broadcaster_user_id: channelID,
+			access_token: localToken
 		})
-		.then(resp => resp.json())
-		.then(json => {
-			return json;
-		})		
-	} catch (error) {
-	}
-	return false;
+	})
+	.then(res => res.json())
+	.then(data => {
+		console.log('Subscribed, waiting for wishes:', data);
+	})
+	.catch(err => console.error("Fetch error:", err));        
 }
 
+async function listen() {
+	const eventSource = new EventSource(`${backendUrl}/event-stream?broadcaster_user_id=${channelID}`);
 
-
-errorMessage = 'Twitch token is missing or invalid. Please use the Genshin Wisher app to get one.';
-
-if (localToken != "") {
-	user = checkToken(localToken);
-	if (user !== false) {
-		errorMessage = '';
-
-		if (redeemEnabled && redeemTitle != '') {
-			const twitchEvent = new TwitchMonitor({
-				type: 'pubsub',
-				token: localToken,
-				scope: 'channel:read:redemptions',
-				topics: ['channel-points-channel-v1.' + channelID]	// channelID should be in the "local_creds.js" file
-			});
-			twitchEvent.connect();
+	eventSource.onmessage = (event) => {
+		const redemption = JSON.parse(event.data);
+		if (redemption.reward.title === redeemTitle) {
+			redeemer = redemption.user_name;
+			addToQueue("wish");
 		}
+	};
 
-		if (twitchCommandEnabled && twitchCommandPrefix != '') {
-			const twitchChat = new TwitchMonitor({
-				type: 'chat',
-				token: localToken,
-				scope: 'chat:read'
-			});
-			twitchChat.chat();
-		}
-	}
+	eventSource.onerror = (err) => {
+		console.error('Error on listen() - Event stream error:', err);
+		eventSource.close();
+	};
 }
 
-if (errorMessage != '') {
-	wrapper.innerHTML(displayTokenExpired(errorMessage));
-}
+// Initialize
+subscribe();
+listen();
