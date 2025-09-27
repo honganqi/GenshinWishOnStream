@@ -210,6 +210,172 @@ function displayTokenExpired(errorMessage) {
 
 
 
+
+
+class TwitchMonitor {
+	heartbeatInterval = 1000 * 60; //ms between PING's
+	reconnectInterval = 1000 * 3; //ms to wait before reconnect
+	heartbeatHandle;
+	scope = '';
+	ws;
+	twitchOAuthToken = '';
+	topics = '';
+	message = {};
+	
+	constructor({ type, token, scope, topics = '' }) {
+		this.scope = encodeURIComponent(scope);
+		this.twitchOAuthToken = token;
+		this.topics = topics;
+		this.ws = new WebSocket('wss://irc-ws.chat.twitch.tv');
+	}
+
+	// these 5 functions below are thanks to Twitch Developers over at GitHub
+	// https://github.com/twitchdev/pubsub-javascript-sample
+
+	// Source: https://www.thepolyglotdeveloper.com/2015/03/create-a-random-nonce-string-using-javascript/
+	nonce(length) {
+		var text = "";
+		var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+		for (var i = 0; i < length; i++) {
+			text += possible.charAt(Math.floor(Math.random() * possible.length));
+		}
+		return text;
+	}
+
+	heartbeat() {
+		this.message = {
+			type: 'PING'
+		};
+		this.ws.send(JSON.stringify(this.message));
+	}
+
+	listen() {
+		this.message = {
+			type: 'LISTEN',
+			nonce: this.nonce(15),
+			data: {
+				topics: this.topics,
+				auth_token: this.twitchOAuthToken
+			}
+		};
+		this.ws.send(JSON.stringify(this.message));
+	}
+
+	chat() {
+		const cs = this.ws;
+        
+		cs.onopen = () => {
+			cs.send('PASS oauth:' + this.twitchOAuthToken + '\r\n');
+			cs.send('NICK piknik_rules\r\n');
+			cs.send('CAP REQ :twitch.tv/commands twitch.tv/tags\r\n');
+
+			this.heartbeat();
+			this.heartbeatHandle = setInterval(this.heartbeat.bind(this), this.heartbeatInterval);
+		};
+	
+		cs.onerror = function(error) {
+	
+		};
+	
+		cs.onmessage = function(event) {
+			event.data.split('\r\n').forEach(async line => {
+				if (!line) return;
+				var message = parseIRC(line);
+				if (!message.command) return;
+
+				switch (message.command) {
+					case "PING":
+						cs.send('PONG ' + message.params[0]);
+						return;
+					case "001":
+						cs.send('JOIN #' + channelName + '\r\n');
+						return;
+					case "JOIN":
+						console.log('Genshin Wisher: ready to accept Twitch commands (' + twitchCommandPrefix + ')');
+						return;
+					case "CLEARMSG":
+					case "CLEARCHAT":
+						return;
+					case "PRIVMSG":
+						if (message.params[0] !== '#' + channelName || !message.params[1] || !message.params[1].toLowerCase().startsWith(twitchCommandPrefix)) return;
+						redeemer = message.params[0].replace('#', '');
+						addToQueue("wish");
+						return;
+					case "NOTICE":
+						// need to test expired tokens
+						if (message.params && message.params[1]) {
+							switch (message.params[1]) {
+								case "Login authentication failed":
+									cs.send('PART #' + channelName + '\r\n')
+									clearInterval(this.heartbeatHandle);
+									var errorMessage = 'Twitch token is missing or invalid. Please use the Genshin Wisher app to get one.';
+									wrapper.innerHTML = displayTokenExpired(errorMessage);
+							}
+						}
+						return;
+				}
+			});
+		};
+	
+		cs.onclose = function() {
+
+		};
+    }    
+}
+
+
+
+
+
+
+
+
+
+
+
+async function checkToken(localToken) {
+	try {
+		var url = 'https://id.twitch.tv/oauth2/validate';
+		fetch(url, {
+			headers: {Authorization: `Bearer ${localToken}`}
+		})
+		.then(resp => resp.json())
+		.then(json => {
+			return json;
+		})		
+	} catch (error) {
+		console.log('checkToken error:', error);
+		return false;
+	}
+}
+
+
+
+errorMessage = 'Twitch token is missing or invalid. Please use the Genshin Wisher app to get one.';
+
+if (localToken != "") {
+	checkToken(localToken)
+	.then(user => {
+		if (user !== false) {
+			errorMessage = '';
+
+			if (twitchCommandEnabled && twitchCommandPrefix != '') {
+				const twitchChat = new TwitchMonitor({
+					type: 'chat',
+					token: localToken,
+					scope: 'chat:read'
+				});
+				twitchChat.chat();
+			}
+		} else {
+			if (errorMessage != '') {
+				wrapper.innerHTML = displayTokenExpired(errorMessage);
+			}
+		}
+	})
+}
+
+
 const backendUrl = 'https://genshin-twitch.sidestreamnetwork.net';
 
 // Subscribe to redemptions
