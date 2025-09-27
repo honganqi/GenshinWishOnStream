@@ -1,4 +1,8 @@
 # Genshin Impact: Wish On Stream
+
+[![Latest Release](https://badgen.net/github/release/honganqi/GenshinWishOnStream/releases "Latest Release")](https://github.com/honganqi/GenshinWishOnStream/releases/latest) 
+![Downloads](https://img.shields.io/github/downloads/honganqi/GenshinWishOnStream/total "Downloads") ![GitHub Repo stars](https://badgen.net/github/stars/honganqi/GenshinWishOnStream "GitHub Repo stars") [![License](https://badgen.net/github/license/honganqi/GenshinWishOnStream "License")](https://github.com/honganqi/GenshinWishOnStream/blob/main/LICENSE) [![Discord](https://badgen.net/discord/members/EbwgmWwXF8?icon=discord&label "Discord")](https://discord.gg/EbwgmWwXF8) [![Buy Me A Coffee](https://badgen.net/badge/icon/Donate?icon=buymeacoffee&label "Donate through Buy Me A Coffee")](https://buymeacoffee.com/honganqi)
+
 Let your viewers wish on your stream (overlay!)
 
 ## About
