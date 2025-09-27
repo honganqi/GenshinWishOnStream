@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in
 this file.
 
+## 1.8 - 2025/09/27
+### Added
+* Added Chasca, Ororon, Citlali, Mavuika, Lan Yan, Yumemizuki Mizuki, Iansan, Varesa, Escoffier, Ifa, Dahlia, Skirk, Ineffa, Aino, Lauma
+### Changed
+* Changed Promise-dependent JQuery code to vanilla JavaScript
+### Fixed
+* WORKING AGAIN! Overhauled the backend: migrated from PubSub to EventSub
+### Removed
+* Removed dependency on JQuery and parseIRC
+
 ## 1.7.1 - 2024/10/18
 ### Added
 * Added Kinich and Xilonen as characters

@@ -10,6 +10,9 @@ This is a simple tool for more viewer engagement using characters from the gacha
 * Your Twitch channel should have Viewer Rewards and Channel Points enabled (use chat commands if you don't)
 * MAYBE some familiarity with JavaScript but it depends if and how you want to customize this
 
+## 2025 FIX
+**WORKING AGAIN** after migrating to Twitch EventSub
+
 ## Tutorial Video
 [![2024 TUTORIAL UPDATE! Genshin Wisher Twitch Redeem](https://img.youtube.com/vi/rmQtHKb_tLc/0.jpg)](https://youtu.be/Y6KX97bVEeg)
 

@@ -1,6 +1,6 @@
 {
-	"version": "1.7.1.0",
-	"release_date": "2024-10-18T11:17:51",
-	"download_url": "https://github.com/honganqi/GenshinWishOnStream/releases/download/v1.7.1/GenshinWishOnStream.1.7.1.zip",
-	"description": "Fixed redeem names with special characters, added Xilonen etc"
+	"version": "1.8.0.0",
+	"release_date": "2025-09-27T18:45:00",
+	"download_url": "https://github.com/honganqi/GenshinWishOnStream/releases/download/v1.8/GenshinWishOnStream.1.8.zip",
+	"description": "Working again - fixed backend, also added 2025 characters"
 }
