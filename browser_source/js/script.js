@@ -1,4 +1,4 @@
-/* Genshin Impact: Wish On Stream v1.8 by honganqi */
+/* Genshin Impact: Wish On Stream v1.9 by honganqi */
 /* https://github.com/honganqi/GenshinWishOnStream */
 
 var wrapper = document.getElementById('wrapper');
@@ -333,16 +333,20 @@ class TwitchMonitor {
 
 
 
+const backendUrl = 'https://genshin-twitch.sidestreamnetwork.net';
+
+// validate token for chat
 async function checkToken(localToken) {
 	try {
-		var url = 'https://id.twitch.tv/oauth2/validate';
-		fetch(url, {
+		const res = await fetch(`${backendUrl}/auth/validate`, {
+			method: 'POST',
 			headers: {Authorization: `Bearer ${localToken}`}
-		})
-		.then(resp => resp.json())
-		.then(json => {
-			return json;
-		})		
+		});
+		if (res.status === 200) {
+			const data = await res.json();
+			return data;
+		}
+		return false;
 	} catch (error) {
 		console.log('checkToken error:', error);
 		return false;
@@ -350,13 +354,14 @@ async function checkToken(localToken) {
 }
 
 
-
 errorMessage = 'Twitch token is missing or invalid. Please use the Genshin Wisher app to get one.';
 
+// validate token and start Twitch chat monitoring if valid
+// else, show token expired message to prompt the user to re-auth using the GUI app
 if (localToken != "") {
 	checkToken(localToken)
 	.then(user => {
-		if (user !== false) {
+		if (user.valid !== false) {
 			errorMessage = '';
 
 			if (twitchCommandEnabled && twitchCommandPrefix != '') {
@@ -376,16 +381,16 @@ if (localToken != "") {
 }
 
 
-const backendUrl = 'https://genshin-twitch.sidestreamnetwork.net';
-
-// Subscribe to redemptions
+// subscribe to redemptions
 async function subscribe() {
 	const genshinWisherClientId = 'rs83ihxx7l4k7jjeprsiz03ofvly8g';
+	const subscribeSecret = 'QtxFEQlcbCe/8AEqFVeCDEuG1cCqF/tb';
 	const res = await fetch(`${backendUrl}/subscribe`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			'Client-Id': genshinWisherClientId
+			'Client-Id': genshinWisherClientId,
+			'x-subscribe-secret': subscribeSecret
 		},
 		body: JSON.stringify({
 			broadcaster_user_id: channelID,
@@ -416,6 +421,6 @@ async function listen() {
 	};
 }
 
-// Initialize
+// initialize redemption connections
 subscribe();
 listen();

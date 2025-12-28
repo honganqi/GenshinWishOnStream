@@ -55,6 +55,9 @@ namespace GenshinImpact_WishOnStreamGUI
             this.btnAddStarValue = new System.Windows.Forms.Button();
             this.labelTitleCharacters = new System.Windows.Forms.Label();
             this.panelSettings = new System.Windows.Forms.Panel();
+            this.labelPullRewards = new System.Windows.Forms.Label();
+            this.btnUpdateRewards = new System.Windows.Forms.Button();
+            this.btnCopyAuthLink = new System.Windows.Forms.Label();
             this.labelCommandTip = new System.Windows.Forms.Label();
             this.chkCommand = new System.Windows.Forms.CheckBox();
             this.label3 = new System.Windows.Forms.Label();
@@ -460,6 +463,9 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelSettings.AutoScroll = true;
             this.panelSettings.AutoSize = true;
             this.panelSettings.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.panelSettings.Controls.Add(this.labelPullRewards);
+            this.panelSettings.Controls.Add(this.btnUpdateRewards);
+            this.panelSettings.Controls.Add(this.btnCopyAuthLink);
             this.panelSettings.Controls.Add(this.labelCommandTip);
             this.panelSettings.Controls.Add(this.chkCommand);
             this.panelSettings.Controls.Add(this.label3);
@@ -483,6 +489,41 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelSettings.Size = new System.Drawing.Size(823, 457);
             this.panelSettings.TabIndex = 16;
             // 
+            // labelPullRewards
+            // 
+            this.labelPullRewards.AutoSize = true;
+            this.labelPullRewards.BackColor = System.Drawing.SystemColors.ControlLightLight;
+            this.labelPullRewards.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelPullRewards.Location = new System.Drawing.Point(249, 147);
+            this.labelPullRewards.Name = "labelPullRewards";
+            this.labelPullRewards.Size = new System.Drawing.Size(183, 13);
+            this.labelPullRewards.TabIndex = 49;
+            this.labelPullRewards.Text = "Getting Channel Points Rewards...";
+            this.labelPullRewards.Visible = false;
+            // 
+            // btnUpdateRewards
+            // 
+            this.btnUpdateRewards.Enabled = false;
+            this.btnUpdateRewards.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnUpdateRewards.Location = new System.Drawing.Point(468, 140);
+            this.btnUpdateRewards.Name = "btnUpdateRewards";
+            this.btnUpdateRewards.Size = new System.Drawing.Size(106, 27);
+            this.btnUpdateRewards.TabIndex = 47;
+            this.btnUpdateRewards.Text = "Refresh Rewards";
+            this.btnUpdateRewards.UseVisualStyleBackColor = true;
+            // 
+            // btnCopyAuthLink
+            // 
+            this.btnCopyAuthLink.AutoSize = true;
+            this.btnCopyAuthLink.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnCopyAuthLink.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.btnCopyAuthLink.Location = new System.Drawing.Point(201, 124);
+            this.btnCopyAuthLink.Name = "btnCopyAuthLink";
+            this.btnCopyAuthLink.Size = new System.Drawing.Size(192, 13);
+            this.btnCopyAuthLink.TabIndex = 46;
+            this.btnCopyAuthLink.Text = "(click here if using another browser)";
+            this.btnCopyAuthLink.Click += new System.EventHandler(this.btnCopyAuthLink_Click);
+            // 
             // labelCommandTip
             // 
             this.labelCommandTip.AutoSize = true;
@@ -497,6 +538,7 @@ namespace GenshinImpact_WishOnStreamGUI
             // chkCommand
             // 
             this.chkCommand.AutoSize = true;
+            this.chkCommand.Enabled = false;
             this.chkCommand.Location = new System.Drawing.Point(197, 178);
             this.chkCommand.Name = "chkCommand";
             this.chkCommand.Size = new System.Drawing.Size(15, 14);
@@ -537,6 +579,7 @@ namespace GenshinImpact_WishOnStreamGUI
             // cmbRedeems
             // 
             this.cmbRedeems.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbRedeems.Enabled = false;
             this.cmbRedeems.FormattingEnabled = true;
             this.cmbRedeems.Location = new System.Drawing.Point(218, 141);
             this.cmbRedeems.Name = "cmbRedeems";
@@ -556,7 +599,7 @@ namespace GenshinImpact_WishOnStreamGUI
             // imgTwitchConnect
             // 
             this.imgTwitchConnect.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.imgTwitchConnect.Location = new System.Drawing.Point(197, 99);
+            this.imgTwitchConnect.Location = new System.Drawing.Point(197, 87);
             this.imgTwitchConnect.Name = "imgTwitchConnect";
             this.imgTwitchConnect.Size = new System.Drawing.Size(200, 36);
             this.imgTwitchConnect.TabIndex = 37;
@@ -630,6 +673,7 @@ namespace GenshinImpact_WishOnStreamGUI
             // chkRedeems
             // 
             this.chkRedeems.AutoSize = true;
+            this.chkRedeems.Enabled = false;
             this.chkRedeems.Location = new System.Drawing.Point(197, 147);
             this.chkRedeems.Name = "chkRedeems";
             this.chkRedeems.Size = new System.Drawing.Size(15, 14);
@@ -692,6 +736,7 @@ namespace GenshinImpact_WishOnStreamGUI
             this.Name = "MainWindow";
             this.Text = "Genshin Impact: Wish On Stream";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainWindow_FormClosing);
+            this.Shown += new System.EventHandler(this.MainWindow_Shown);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainWindow_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MainWindow_MouseMove);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MainWindow_MouseUp);
@@ -762,6 +807,9 @@ namespace GenshinImpact_WishOnStreamGUI
         private System.Windows.Forms.TextBox txtCommand;
         private System.Windows.Forms.CheckBox chkRedeems;
         private System.Windows.Forms.Label labelCommandTip;
+        private System.Windows.Forms.Label btnCopyAuthLink;
+        private System.Windows.Forms.Button btnUpdateRewards;
+        private System.Windows.Forms.Label labelPullRewards;
     }
 }
 

@@ -19,19 +19,16 @@ namespace GenshinImpact_WishOnStreamGUI
         public bool mouseDown;
         public Point lastLocation;
 
-        public string wisherPath = "";
-
         SortedDictionary<int, int> rates = new();
         StarList starList = new();
         List<string> dullBlades = new();
 
         public bool updateAvailable = false;
-        string updateurl = "https://raw.githubusercontent.com/honganqi/GenshinWishOnStream/main/latest.json";
+        readonly string updateurl = "https://raw.githubusercontent.com/honganqi/GenshinWishOnStream/main/latest.json";
         string downloadURL = "";
         HttpServer httpServer = new();
-        public AuthThings authVar;
+        readonly string authUrl = "https://genshin-twitch.sidestreamnetwork.net/auth";
         UserInfo userInfo;
-        public bool userTokenized = false;
 
 
         // Characters "Panel" variables
@@ -57,8 +54,6 @@ namespace GenshinImpact_WishOnStreamGUI
             ControlBox = false;
             Text = string.Empty;
 
-            authVar = new(this);
-
             imgBMCSupport.Image = Images.Load("bmc");
             imgSF.Image = Images.Load("github");
             imgYoutube.Image = Images.Load("youtube");
@@ -80,31 +75,6 @@ namespace GenshinImpact_WishOnStreamGUI
             if (currentVersionSplit[2] == "0") currentVersionSplit.RemoveAt(2);
             labelVerNum.Text = "v" + string.Join(".", currentVersionSplit) + " by honganqi";
 
-            string pathCheck = "";
-
-            // set path if exists
-            if (Properties.Settings.Default.path != "")
-            {
-                if (Directory.Exists(Properties.Settings.Default.path))
-                    pathCheck = Properties.Settings.Default.path;
-                else
-                    MessageBox.Show("The previously specified folder does not exist (anymore): \n" + Properties.Settings.Default.path + "\n\nPlease point this app to where the \"Genshin_Wish.html\" file is.");
-                    SwitchPanel(panelSettings);
-            }
-            else
-                pathCheck = Directory.GetCurrentDirectory();
-
-            // check user and settings
-            List<string> failedFiles = CheckSettings(pathCheck);
-            CheckFiles(failedFiles, pathCheck);
-            string userInitError = userInfo.CheckUser();
-            if ((failedFiles.Count == 0) && (userInitError == ""))
-                SwitchPanel(panelCharacters);
-            else
-                if (userInitError != "")
-                MessageBox.Show(userInitError, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            SwitchPanel(panelSettings);
-
             // set window state
             if (Properties.Settings.Default.windowState == "Maximized")
             {
@@ -112,18 +82,35 @@ namespace GenshinImpact_WishOnStreamGUI
                 btnMaximize.BackgroundImage = Images.Load("restore");
             }
 
-            httpServer.Start(this);
-
-            // check for updates
-            CheckUpdate(updateurl);
+            // update UI after authentication
+            httpServer.AuthCompleted += payload =>
+            {
+                if (InvokeRequired)
+                {
+                    BeginInvoke(new Action(() =>
+                    {
+                        UpdateUserInfoFromAuthPayload(payload);
+                        UpdateUIPanelSettingsWithUserInfo(userInfo);
+                        List<string> failedFiles = CheckSettings();
+                        CheckFiles(failedFiles);
+                        MessageBox.Show("Authentication success!", "", MessageBoxButtons.OK);
+                    }));
+                }
+                else
+                {
+                    UpdateUserInfoFromAuthPayload(payload);
+                    UpdateUIPanelSettingsWithUserInfo(userInfo);
+                    List<string> failedFiles = CheckSettings();
+                    CheckFiles(failedFiles);
+                    MessageBox.Show("Authentication success!", "", MessageBoxButtons.OK);
+                }
+            };
         }
 
         private void SwitchPanel(Panel panelname)
         {
-            if ((wisherPath != "") || ((wisherPath == "") && (panelname == panelSettings)))
+            if (userInfo.Name != "" || panelname == panelSettings)
                 panelname.BringToFront();
-            else
-                MessageBox.Show("The path to the Genshin Wisher has not been set yet. Please point this app to where the \"Genshin_Wish.html\" file is.", "Setup needed", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         private void SaveWindowSettings()
@@ -131,26 +118,47 @@ namespace GenshinImpact_WishOnStreamGUI
             Properties.Settings.Default.windowSize = Size;
             Properties.Settings.Default.windowStartLocation = Location;
             Properties.Settings.Default.windowState = WindowState.ToString();
-            if ((wisherPath != "") && Directory.Exists(wisherPath))
-                Properties.Settings.Default.path = wisherPath;
             Properties.Settings.Default.Save();
         }
 
-        public void RevokeToken()
+        public void ResetUser()
         {
-            authVar.RevokeToken();
-            cmbRedeems.Items.Clear(); 
-        }
-
-        public void UpdateSettingsPanel(UserInfo userTransit)
-        {
-            userInfo = userTransit;
-            SetUserInfo(userInfo);
+            SaveUserSettingsToFile(userInfo: new(), revoke: true);
+            imgTwitchConnect.Visible = true;
+            btnCopyAuthLink.Visible = true;
+            btnRevokeToken.Enabled = false;
+            btnUpdateRewards.Enabled = false;
+            chkRedeems.Enabled = false;
+            chkCommand.Enabled = false;
+            txtCommand.Text = "";
+            txtCommand.Enabled = false;
+            cmbRedeems.Items.Clear();
         }
 
         public void UpdateSettingsRewards()
         {
-            SetUserInfo(userInfo);
+            labelPullRewards.Visible = true;
+
+            Task.Run(async () =>
+            {
+                try
+                {
+                    userInfo.Rewards = await userInfo.GetCustomRewards();
+                    BeginInvoke(new Action(() =>
+                    {
+                        cmbRedeems.Enabled = userInfo.RedeemEnabled;
+                        SetRewards();
+                        cmbRedeems.SelectedItem = userInfo.Redeem;
+                    }));
+                }
+                finally
+                {
+                    BeginInvoke(new Action(() =>
+                    {
+                        labelPullRewards.Visible = false;
+                    }));
+                }
+            });
         }
 
         public void DisplayConnectionErrors(List<string> errors)
@@ -161,7 +169,7 @@ namespace GenshinImpact_WishOnStreamGUI
 
 
         #region Fetchers
-        private bool GetLocalUser()
+        private bool ReadUserSettingsFromFile()
         {
             Dictionary<string, string> userSettingsContents = new();
             string pattern = @"var\s+(\w+)\s*=\s*(?:""([^""]*)""|'([^'\\]*(?:\\'[^'\\]*)*)'|(\d+|true|false))\s*;";
@@ -172,7 +180,6 @@ namespace GenshinImpact_WishOnStreamGUI
                 "channelName",
                 "channelID",
                 "localToken",
-                "localTokenExpiry",
                 "redeemTitle",
                 "redeemEnabled",
                 "twitchCommandPrefix",
@@ -180,8 +187,7 @@ namespace GenshinImpact_WishOnStreamGUI
                 "animation_duration"
             };
 
-
-            using (StreamReader sr = new(Path.Combine(wisherPath, "js/local_creds.js")))
+            using (StreamReader sr = new(Path.Combine("js", "local_creds.js")))
             {
                 while (sr.Peek() >= 0)
                 {
@@ -216,28 +222,16 @@ namespace GenshinImpact_WishOnStreamGUI
                 string id = userSettingsContents.ContainsKey("channelID") ? userSettingsContents["channelID"] : "";
                 userInfo = new(name, id);
                 userInfo.Token = userSettingsContents.ContainsKey("localToken") ? userSettingsContents["localToken"] : "";
-                userTokenized = true;
                 userInfo.Redeem = userSettingsContents.ContainsKey("redeemTitle") ? userSettingsContents["redeemTitle"] : "";
                 userInfo.RedeemEnabled = (userSettingsContents.ContainsKey("redeemEnabled") && bool.Parse(userSettingsContents["redeemEnabled"])) ? bool.Parse(userSettingsContents["redeemEnabled"]) : false;
                 userInfo.TwitchCommandPrefix = userSettingsContents.ContainsKey("twitchCommandPrefix") ? userSettingsContents["twitchCommandPrefix"] : "";
                 userInfo.TwitchCommandEnabled = (userSettingsContents.ContainsKey("twitchCommandEnabled") && bool.Parse(userSettingsContents["twitchCommandEnabled"])) ? bool.Parse(userSettingsContents["twitchCommandEnabled"]) : false;
                 if (!userSettingsContents.ContainsKey("redeemEnabled") && userInfo.Redeem != "")
                     userInfo.RedeemEnabled = true;
-                if (userSettingsContents.ContainsKey("localTokenExpiry") && int.TryParse(userSettingsContents["localTokenExpiry"], out int expiry))
-                {
-                    userInfo.TokenExpiry = expiry;
-                    if (int.TryParse(userSettingsContents["animation_duration"], out int duration))
-                        userInfo.Duration = duration;
-                }
+                if (int.TryParse(userSettingsContents["animation_duration"], out int duration))
+                    userInfo.Duration = duration;
 
-                authVar.user = userInfo;
-
-                // get new token if user exists
-                if (userInfo.Token != "")
-                {
-                    SetUserInfo(userInfo);
-                    authVar.GetUserInfo(userInfo.Token);
-                }
+                UpdateUIPanelSettingsWithUserInfo(userInfo);
 
                 return true;
             }
@@ -246,7 +240,7 @@ namespace GenshinImpact_WishOnStreamGUI
         }
         private bool GetRates()
         {
-            using (StreamReader sr = new(Path.Combine(wisherPath, "js/rates.js")))
+            using (StreamReader sr = new(Path.Combine("js", "rates.js")))
             {
                 while (sr.Peek() >= 0)
                 {
@@ -276,7 +270,7 @@ namespace GenshinImpact_WishOnStreamGUI
         private bool GetChoices()
         {
             starList = new();
-            using StreamReader sr = new(Path.Combine(wisherPath, "js/choices.js"));
+            using StreamReader sr = new(Path.Combine("js", "choices.js"));
             int currentStarValue = 0;
             bool isInsideCharacterBracket = false;
             bool isInsideDullBladesBracket = false;
@@ -315,7 +309,6 @@ namespace GenshinImpact_WishOnStreamGUI
                 }
                 else if (isInsideCharacterBracket)
                 {
-                    //string name = line.Replace("\"", "").Replace("\'", "").Replace(",", "").Trim();
                     CharacterElementPair charElemPair = JsonConvert.DeserializeObject<CharacterElementPair>(line.Trim(','));
                     charElemPairList.Add(charElemPair);
                     starList[currentStarValue].Add(charElemPair.Name);
@@ -344,7 +337,7 @@ namespace GenshinImpact_WishOnStreamGUI
 
 
         #region File Read-Write
-        public List<string> CheckSettings(string pathCheck)
+        public List<string> CheckSettings()
         {
             List<string> filesToCheck = new()
             {
@@ -352,24 +345,23 @@ namespace GenshinImpact_WishOnStreamGUI
                 "choices.js",
             };
             List<string> failedFiles = new();
-            if (!File.Exists(Path.Combine(pathCheck, "Genshin_Wish.html")))
+            if (!File.Exists("Genshin_Wish.html"))
                 failedFiles.Add("Genshin_Wish.html");
 
             // check for local_creds.js file, create it if it doesn't exist
-            if (!File.Exists(Path.Combine(pathCheck, "js/", "local_creds.js")))
-                authVar.SaveCreds(userInfo: new(), saveToFile: true, revoke: true);
+            if (!File.Exists(Path.Combine("js", "local_creds.js")))
+                SaveUserSettingsToFile(userInfo: new(), revoke: true);
 
             foreach (string toCheck in filesToCheck)
             {
-                if (!File.Exists(Path.Combine(pathCheck, "js/", toCheck)))
+                if (!File.Exists(Path.Combine("js", toCheck)))
                     failedFiles.Add(toCheck);
             }
-
 
             return failedFiles;
         }
 
-        public void CheckFiles(List<string> failedFiles, string pathCheck)
+        public void CheckFiles(List<string> failedFiles)
         {
             if (failedFiles.Count > 0)
             {
@@ -380,31 +372,29 @@ namespace GenshinImpact_WishOnStreamGUI
             }
             else
             {
-                wisherPath = pathCheck;
-                authVar.wisherPath = wisherPath;
-                SetPath(wisherPath);
+                ReadAllSettingsFromFile();
 
-                ReadSettings();
+                if (userInfo.Name != "")
+                {
+                    btnPanelDullBlades.Show();
+                    btnSave.Show();
+                    btnCheck.Show();
+                    btnPanelCharacters.Show();
+                    btnPanelSettings.Show();
+                }
 
-                btnPanelDullBlades.Show();
-                btnSave.Show();
-                btnCheck.Show();
-                btnPanelCharacters.Show();
-                btnPanelSettings.Show();
-
-                Properties.Settings.Default.path = pathCheck;
                 Properties.Settings.Default.Save();
             }
         }
 
-        private void ReadSettings()
+        private void ReadAllSettingsFromFile()
         {
             List<string> errors = new();
             if (!GetChoices())
                 errors.Add("choices.js");
             if (!GetRates())
                 errors.Add("rates.js");
-            if (!GetLocalUser())
+            if (!ReadUserSettingsFromFile())
                 errors.Add("local_creds.js");
             if (errors.Count > 0)
                 MessageBox.Show("There were errors reading the following files:\n\n   - " + string.Join("\n   - ", errors) + "\n\nThese are probably syntax errors. Kindly check your files or download the JS files again.");
@@ -415,7 +405,7 @@ namespace GenshinImpact_WishOnStreamGUI
             }
         }
 
-        public void SaveData()
+        public void SaveAllSettingsToFile()
         {
             List<string> messages = new();
             StarList starList = ExtractDataFromCharactersPanel();
@@ -423,7 +413,7 @@ namespace GenshinImpact_WishOnStreamGUI
             {
                 rates = new();
                 Dictionary<string, string> characterElements = new();
-                string pathChoices = Path.Combine(wisherPath, "js/choices.js");
+                string pathChoices = Path.Combine("js", "choices.js");
 
                 if (File.Exists(pathChoices))
                 {
@@ -464,7 +454,7 @@ namespace GenshinImpact_WishOnStreamGUI
                     // process rates
                     if (rates.Count > 0)
                     {
-                        string pathRates = Path.Combine(wisherPath, "js/rates.js");
+                        string pathRates = Path.Combine("js", "rates.js");
                         if (File.Exists(pathRates))
                         {
                             using StreamWriter writer = new(pathRates);
@@ -484,7 +474,7 @@ namespace GenshinImpact_WishOnStreamGUI
                         }
                         else
                         {
-                            messages.Add("\"rates.js\" not found in the \"" + wisherPath + "\"js folder.");
+                            messages.Add("\"rates.js\" not found in the \"js\" folder.");
                         }
 
                     }
@@ -495,7 +485,7 @@ namespace GenshinImpact_WishOnStreamGUI
                 }
                 else
                 {
-                    messages.Add("\"choices.js\" not found in the \"" + wisherPath + "\"js folder.");
+                    messages.Add("\"choices.js\" not found in the \"js\" folder.");
                 }
             }
             else
@@ -503,12 +493,69 @@ namespace GenshinImpact_WishOnStreamGUI
                 messages.Add("There was an error in the Character table data.");
             }
             ExtractUserInfo(ref userInfo);
-            string credMessages = authVar.SaveCreds(userInfo, true);
+            string credMessages = SaveUserSettingsToFile(userInfo);
             messages.Add(credMessages);
 
             if (messages.Count > 0)
                 MessageBox.Show(string.Join("\n\n", messages), "Save status", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
 
+        public string SaveUserSettingsToFile(UserInfo userInfo, bool revoke = false)
+        {
+            string pathSettings = Path.Combine("js", "local_creds.js");
+            string errors = "";
+            bool freshCredsFile = false;
+
+            if (!File.Exists(pathSettings))
+            {
+                MessageBox.Show("The \"local_creds.js\" file was not found in the \"js\" folder.\nOne will be created for you.\n\nPlease use the \"Connect to Twitch\" button to authenticate to allow you to select the Channel Point Reward and/or the chat command to use.");
+                freshCredsFile = true;
+            }
+                
+
+            if (!revoke)
+            {
+                if (userInfo.Name == "")
+                    errors += " - Username was blank. Please connect using the Twitch button.\n";
+                if (userInfo.Redeem == "")
+                    errors += " - The Channel Point Redeem is not set. Please set this or make sure you have access to Twitch channel point rewards (Twitch Affiiate, etc.).";
+            }
+            else
+            {
+                userInfo = new();
+            }
+
+            if (errors == "")
+            {
+                UpdateUIPanelSettingsWithUserInfo(userInfo);
+                if (!userInfo.RedeemEnabled && !userInfo.TwitchCommandEnabled && !freshCredsFile)
+                    MessageBox.Show("You have not selected any way for your viewers to wish. Settings saved anyway.", "No option selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+                Console.WriteLine(userInfo.Token);
+                errors = "User settings saved successfully!";
+                using StreamWriter writer = new(pathSettings);
+                writer.WriteLine("var channelName = \'" + userInfo.Name + "\';");
+                writer.WriteLine("var channelID = \'" + userInfo.ID + "\';");
+                writer.WriteLine("var localToken = \'" + userInfo.Token.Replace("'", @"\'") + "\';");
+                writer.WriteLine("var redeemTitle = \'" + userInfo.Redeem + "\';");
+                writer.WriteLine("var redeemEnabled = " + (userInfo.RedeemEnabled ? "true" : "false") + ";");
+                writer.WriteLine("var twitchCommandPrefix = \'" + userInfo.TwitchCommandPrefix.Replace("'", @"\'") + "\';");
+                writer.WriteLine("var twitchCommandEnabled = " + (userInfo.TwitchCommandEnabled ? "true" : "false") + ";");
+                writer.WriteLine("var animation_duration = " + userInfo.Duration + ";");
+            }
+            else
+            {
+                errors = "User Settings errors:\n" + errors;
+            }
+
+            return errors;
+        }
+
+        void UpdateUserInfoFromAuthPayload(HttpServer.AuthPayload payload)
+        {
+            userInfo = new (name: payload.ChannelName, id: payload.ChannelId);
+            userInfo.Token = payload.Token;
+            userInfo.Rewards = payload.Redeems;
         }
         #endregion
 
@@ -607,6 +654,28 @@ namespace GenshinImpact_WishOnStreamGUI
             else
                 e.Cancel = true;
         }
+
+        private void MainWindow_Shown(object sender, EventArgs e)
+        {
+            // check user and settings
+            List<string> failedFiles = CheckSettings();
+            CheckFiles(failedFiles);
+            var panel = panelSettings;
+            if ((failedFiles.Count == 0))
+            {
+                ReadUserSettingsFromFile();
+                panel = panelCharacters;
+                if (userInfo.ID != "")
+                    UpdateSettingsRewards();
+            }
+            SwitchPanel(panel);
+
+            httpServer.Start();
+
+            // check for GUI app updates
+            CheckUpdate(updateurl);
+        }
+
         private void btnMaximize_Click(object sender, EventArgs e)
         {
             if (WindowState == FormWindowState.Maximized)
@@ -650,19 +719,13 @@ namespace GenshinImpact_WishOnStreamGUI
             }
         }
 
-        private void btnSave_Click(object sender, EventArgs e)
-        {
-            if (wisherPath != "")
-                SaveData();
-            else
-                MessageBox.Show("The path to the Genshin Wisher has not been set yet. Please point this app to where the \"Genshin_Wish.html\" file is.", "Setup needed", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
+        private void btnSave_Click(object sender, EventArgs e) => SaveAllSettingsToFile();
+
         private void btnCheck_Click(object sender, EventArgs e)
         {
-            if (wisherPath != "")
-                ExtractDataFromCharactersPanel();
-            else
-                MessageBox.Show("The path to the Genshin Wisher has not been set yet. Please point this app to where the \"Genshin_Wish.html\" file is.", "Setup needed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            StarList listCheck = ExtractDataFromCharactersPanel();
+            if (listCheck.Count > 0)
+                MessageBox.Show("No errors found.", "All clear!", MessageBoxButtons.OK);
         }
 
         protected override void WndProc(ref Message m)
@@ -682,6 +745,19 @@ namespace GenshinImpact_WishOnStreamGUI
         }
 
         private void btnUpdateNotif_Click(object sender, EventArgs e) => GetUpdate();
+
+        private void chkCommand_CheckedChanged(object sender, EventArgs e)
+        {
+            userInfo.TwitchCommandEnabled = chkCommand.Checked;
+            txtCommand.Enabled = chkCommand.Checked;
+        }
+
+        private void chkRedeems_CheckedChanged(object sender, EventArgs e)
+        {
+            userInfo.RedeemEnabled = chkRedeems.Checked;
+            cmbRedeems.Enabled = chkRedeems.Checked;
+        }
+
         #endregion
 
 
@@ -700,8 +776,8 @@ namespace GenshinImpact_WishOnStreamGUI
             lastItemY = 0;
 
             int starNum = 1;
-            string[] allCharacters = Directory.GetFiles(Path.Combine(wisherPath, "img", "characters")).Select(file => Path.GetFileName(file)).ToArray();
-            string[] allElements = Directory.GetFiles(Path.Combine(wisherPath, "img", "elements")).Select(file => Path.GetFileName(file)).ToArray();
+            string[] allCharacters = Directory.GetFiles(Path.Combine("img", "characters")).Select(file => Path.GetFileName(file)).ToArray();
+            string[] allElements = Directory.GetFiles(Path.Combine("img", "elements")).Select(file => Path.GetFileName(file)).ToArray();
 
             foreach (KeyValuePair<int, CharacterListInStar> charListPair in starList.Reverse())
             {
@@ -1179,12 +1255,6 @@ namespace GenshinImpact_WishOnStreamGUI
 
 
         #region Settings Panel Functions
-        public void SetPath(string newpath)
-        {
-            cmbRedeems.Enabled = true;
-            txtDuration.Enabled = true;
-        }
-
         public void ExtractUserInfo(ref UserInfo info)
         {
             info.Redeem = cmbRedeems.Text.Trim();
@@ -1197,58 +1267,37 @@ namespace GenshinImpact_WishOnStreamGUI
                     info.Duration = duration;
         }
 
-        public void SetUserInfo(UserInfo userInfo)
+        public void UpdateUIPanelSettingsWithUserInfo(UserInfo userInfo)
         {
-            if (ControlInvokeRequired(txtUsername, () => SetUserInfo(userInfo))) return;
+            if (ControlInvokeRequired(txtUsername, () => UpdateUIPanelSettingsWithUserInfo(userInfo))) return;
             txtUsername.Text = userInfo.Name;
-
-            // set redeems before selecting
-            if (cmbRedeems.InvokeRequired)
-                cmbRedeems.Invoke(new MethodInvoker(() => SetRewards()));
-            else
-                SetRewards();
-
-            chkRedeems.Checked = userInfo.RedeemEnabled;
-
-            if (userInfo.BroadcasterType != "affiliate" && userInfo.BroadcasterType != "partner")
+            if (userInfo.Name != "")
             {
-                chkRedeems.Enabled = false;
-                cmbRedeems.Enabled = false;
-                cmbRedeems.Text = "";
-            } else
-            {
+                imgTwitchConnect.Visible = false;
+                btnCopyAuthLink.Visible = false;
+                btnRevokeToken.Enabled = true;
+                btnUpdateRewards.Enabled = true;
                 chkRedeems.Enabled = true;
-                cmbRedeems.Enabled = true;
+                chkCommand.Enabled = true;
+                txtCommand.Enabled = false;
+
+                // set redeems before selecting
+                if (cmbRedeems.InvokeRequired)
+                    cmbRedeems.Invoke(new MethodInvoker(() => SetRewards()));
+                else
+                    SetRewards();
+
+                chkRedeems.Checked = userInfo.RedeemEnabled;
+                cmbRedeems.Enabled = userInfo.RedeemEnabled;
                 if (userInfo.Name != "")
                     cmbRedeems.SelectedIndex = cmbRedeems.FindStringExact(userInfo.Redeem);
                 else
                     cmbRedeems.Items.Clear();
-            }
 
-            txtCommand.Text = userInfo.TwitchCommandPrefix;
-
-            chkCommand.Checked = userInfo.TwitchCommandEnabled;
-
-            txtDuration.Text = userInfo.Duration.ToString();
-
-            long rightNow = DateTimeOffset.Now.ToUnixTimeSeconds();
-            if (userInfo.TokenExpiry > 0)
-            {
-                if (rightNow < userInfo.TokenExpiry)
-                {
-                    DateTime unixtime = new(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-                    DateTime expiryTime = unixtime.AddSeconds(userInfo.TokenExpiry).ToLocalTime();
-                    labelTokenExpiry.Text = "Token expires on: " + expiryTime;
-                    btnRevokeToken.Enabled = true;
-                }
-                else
-                {
-                    labelTokenExpiry.Text = "Token expired.";
-                }
-            }
-            else
-            {
-                labelTokenExpiry.Text = "Please acquire a token by clicking on the button below.";
+                txtCommand.Text = userInfo.TwitchCommandPrefix;
+                chkCommand.Checked = userInfo.TwitchCommandEnabled;
+                txtDuration.Enabled = true;
+                txtDuration.Text = userInfo.Duration.ToString();
             }
         }
 
@@ -1259,51 +1308,14 @@ namespace GenshinImpact_WishOnStreamGUI
                 cmbRedeems.Items.Add(reward);
         }
 
+        private void imgTwitchConnect_Click(object sender, EventArgs e) => System.Diagnostics.Process.Start(authUrl);
 
-        private static string Nonce(int length)
+        private void btnCopyAuthLink_Click(object sender, EventArgs e)
         {
-            Random random = new();
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            return new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
+            Clipboard.SetText(authUrl);
+            MessageBox.Show("Link copied!", "", MessageBoxButtons.OK);
         }
-
-        private void btnBrowse_Click(object sender, EventArgs e)
-        {
-            FolderBrowserDialog dialog = new();
-            if (dialog.ShowDialog() == DialogResult.OK)
-            {
-                string pathCheck = dialog.SelectedPath;
-                List<string> failedFiles = CheckSettings(pathCheck);
-                CheckFiles(failedFiles, dialog.SelectedPath);
-            }
-        }
-
-        private void imgTwitchConnect_Click(object sender, EventArgs e)
-        {
-            if (wisherPath != "")
-            {
-                string clientId = AuthThings.CLIENT_ID;
-                string redirectURI = HttpServer.localhostAddress.TrimEnd('/');
-                string state = Nonce(15);
-                string scope = System.Web.HttpUtility.UrlEncode("channel:read:redemptions chat:read");
-
-                string url = "https://id.twitch.tv/oauth2/authorize" +
-                    "?response_type=token" +
-                    "&client_id=" + clientId +
-                    "&redirect_uri=" + redirectURI +
-                    "&state=" + state +
-                    "&scope=" + scope +
-                    "&force_verify=true";
-                System.Diagnostics.Process.Start(url);
-            }
-            else
-            {
-                MessageBox.Show("The path to the Genshin Wisher has not been set yet. Please point this app to where the \"Genshin_Wish.html\" file is.", "Setup needed", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void btnRevokeToken_Click(object sender, EventArgs e) => RevokeToken();
+        private void btnRevokeToken_Click(object sender, EventArgs e) => ResetUser();
 
         public bool ControlInvokeRequired(Control c, Action a)
         {
@@ -1393,19 +1405,5 @@ namespace GenshinImpact_WishOnStreamGUI
                 panelDullBlades.Controls.Remove(control);
         }
         #endregion
-
-        private void chkCommand_CheckedChanged(object sender, EventArgs e)
-        {
-            userInfo.TwitchCommandEnabled = chkCommand.Checked;
-            txtCommand.Enabled = chkCommand.Checked;
-        }
-
-        private void chkRedeems_CheckedChanged(object sender, EventArgs e)
-        {
-            userInfo.RedeemEnabled = chkRedeems.Checked;
-            cmbRedeems.Enabled = chkRedeems.Checked;
-        }
     }
-
-
 }

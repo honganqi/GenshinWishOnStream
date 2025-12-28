@@ -28,7 +28,6 @@ This is a simple tool for more viewer engagement using characters from the gacha
 5. If you are a Twitch Partner or Affiliate, your channel point rewards will appear in the list.
 6. You can also choose to use chat commands by inputting your preferred chat command. Include special characters if you want. This is typically the `!` character. Please note that `@` and `/` are not usable for this purpose.
 7. Select the reward you intend to use for the wisher and/or indicate your preferred chat command and click on `Save`.
-**IMPORTANT**: As of February 9, 2024, the GUI still has the bug of showing the list with blank text after connecting to Twitch for the first time. Just save and relaunch the app to see the actual list. 
 6. Add the `Genshin_Wish.html` file as a browser source in your OBS.
     * The suggested dimensions of your browser source depends on your full screen size but it is typically 1920x1080.
     * To get the optionally necessary font, go to your game's installation then navigate to `<game folder>/Genshin Impact Game/GenshinImpact_Data/StreamingAssets/MiHoYoSDKRes/HttpServerResources/font` and copy the `zh-ch.ttf` file to the `fonts` folder of where you extracted Genshin Wisher files.

@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in
 this file.
 
+## 1.9 - 2025/12/28
+### Added
+* Added Flins, Nefer, Durin, Jahoda
+### Changed
+* Moved token handling from local to remote - required by Twitch EventSub vs what was previously possible
+### Fixed
+* REALLY working again this time! Broadcaster is no longer locked to myself (honganqi)
+* Code cleanup
+### Removed
+* Removed token expiry from `local_creds.js`
+
 ## 1.8 - 2025/09/27
 ### Added
 * Added Chasca, Ororon, Citlali, Mavuika, Lan Yan, Yumemizuki Mizuki, Iansan, Varesa, Escoffier, Ifa, Dahlia, Skirk, Ineffa, Aino, Lauma
