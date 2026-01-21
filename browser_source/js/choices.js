@@ -68,6 +68,7 @@ choices[5] = [
 	{name: "Chiori", element: "Geo"},
 	{name: "Citlali", element: "Cryo"},
 	{name: "Clorinde", element: "Electro"},
+	{name: "Columbina", element: "Hydro"},
 	{name: "Cyno", element: "Electro"},
 	{name: "Dehya", element: "Pyro"},
 	{name: "Diluc", element: "Pyro"},
