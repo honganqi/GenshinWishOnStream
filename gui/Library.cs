@@ -159,7 +159,6 @@ namespace GenshinImpact_WishOnStreamGUI
             HttpListenerContext context = _listener.EndGetContext(result);
 
             // add CORS headers to allow the browser to send from the remote backend to localhost
-            const string domain = "https://genshin-twitch.sidestreamnetwork.net/";
             context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
             context.Response.Headers.Add("Access-Control-Allow-Methods", "POST, OPTIONS");
             context.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
@@ -297,18 +296,19 @@ namespace GenshinImpact_WishOnStreamGUI
             Task<HttpResponseMessage> request = Interwebs.httpClient.GetAsync(url);
             await Task.WhenAny(timeout, request);
 
-            try
+            HttpResponseMessage response = request.Result;
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = request.Result;
-                if (response.IsSuccessStatusCode)
-                {
-                    string page = await response.Content.ReadAsStringAsync();
-                    rewards = JsonConvert.DeserializeObject<List<string>>(page);
-                }
+                string page = await response.Content.ReadAsStringAsync();
+                rewards = JsonConvert.DeserializeObject<List<string>>(page);
             }
-            catch (HttpRequestException ex)
+            else if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                Console.WriteLine(ex.Message);
+                throw new UnauthorizedAccessException($"Unable to get Twitch rewards:\n\nUser token has expired. Please use the \"Connect to Twitch\" button to reauthorize.");
+            }
+            else
+            {
+                throw new Exception($"Unable to get Twitch rewards:\n{response.ReasonPhrase}");
             }
 
             return rewards;

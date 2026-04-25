@@ -81,30 +81,6 @@ namespace GenshinImpact_WishOnStreamGUI
                 WindowState = FormWindowState.Maximized;
                 btnMaximize.BackgroundImage = Images.Load("restore");
             }
-
-            // update UI after authentication
-            httpServer.AuthCompleted += payload =>
-            {
-                if (InvokeRequired)
-                {
-                    BeginInvoke(new Action(() =>
-                    {
-                        UpdateUserInfoFromAuthPayload(payload);
-                        UpdateUIPanelSettingsWithUserInfo(userInfo);
-                        List<string> failedFiles = CheckSettings();
-                        CheckFiles(failedFiles);
-                        MessageBox.Show("Authentication success!", "", MessageBoxButtons.OK);
-                    }));
-                }
-                else
-                {
-                    UpdateUserInfoFromAuthPayload(payload);
-                    UpdateUIPanelSettingsWithUserInfo(userInfo);
-                    List<string> failedFiles = CheckSettings();
-                    CheckFiles(failedFiles);
-                    MessageBox.Show("Authentication success!", "", MessageBoxButtons.OK);
-                }
-            };
         }
 
         private void SwitchPanel(Panel panelname)
@@ -121,9 +97,14 @@ namespace GenshinImpact_WishOnStreamGUI
             Properties.Settings.Default.Save();
         }
 
-        public void ResetUser()
+        public void ResetUser(bool fromExpiredToken = false)
         {
-            SaveUserSettingsToFile(userInfo: new(), revoke: true);
+            if (InvokeRequired)
+            {
+                Invoke(() => ResetUser(fromExpiredToken));
+                return;
+            }
+            SaveUserSettingsToFile(userInfo: new(), revoke: true, fromExpiredToken);
             imgTwitchConnect.Visible = true;
             btnCopyAuthLink.Visible = true;
             btnRevokeToken.Enabled = false;
@@ -151,6 +132,15 @@ namespace GenshinImpact_WishOnStreamGUI
                         cmbRedeems.SelectedItem = userInfo.Redeem;
                     }));
                 }
+                catch (UnauthorizedAccessException ex)
+                {
+                    ResetUser(fromExpiredToken: true);
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
                 finally
                 {
                     BeginInvoke(new Action(() =>
@@ -169,7 +159,7 @@ namespace GenshinImpact_WishOnStreamGUI
 
 
         #region Fetchers
-        private bool ReadUserSettingsFromFile()
+        private async Task<bool> ReadUserSettingsFromFile()
         {
             Dictionary<string, string> userSettingsContents = new();
             string pattern = @"var\s+(\w+)\s*=\s*(?:""([^""]*)""|'([^'\\]*(?:\\'[^'\\]*)*)'|(\d+|true|false))\s*;";
@@ -231,7 +221,7 @@ namespace GenshinImpact_WishOnStreamGUI
                 if (int.TryParse(userSettingsContents["animation_duration"], out int duration))
                     userInfo.Duration = duration;
 
-                UpdateUIPanelSettingsWithUserInfo(userInfo);
+                await UpdateUIPanelSettingsWithUserInfo(userInfo);
 
                 return true;
             }
@@ -337,16 +327,14 @@ namespace GenshinImpact_WishOnStreamGUI
 
 
         #region File Read-Write
-        public List<string> CheckSettings()
+        public async Task<List<string>> CheckSettings()
         {
             List<string> filesToCheck = new()
             {
-                "rates.js",
-                "choices.js",
+                "js/rates.js",
+                "js/choices.js",
             };
             List<string> failedFiles = new();
-            if (!File.Exists("Genshin_Wish.html"))
-                failedFiles.Add("Genshin_Wish.html");
 
             // check for local_creds.js file, create it if it doesn't exist
             if (!File.Exists(Path.Combine("js", "local_creds.js")))
@@ -354,25 +342,33 @@ namespace GenshinImpact_WishOnStreamGUI
 
             foreach (string toCheck in filesToCheck)
             {
-                if (!File.Exists(Path.Combine("js", toCheck)))
+                if (!File.Exists(Path.Combine(Application.StartupPath, toCheck.Replace('/', Path.DirectorySeparatorChar))))
+                {
                     failedFiles.Add(toCheck);
+                }
+            }
+
+            // download defaults if configs don't exist
+            if (failedFiles.Count > 0) {
+                await DownloadDefaultConfigs(failedFiles);
             }
 
             return failedFiles;
         }
 
-        public void CheckFiles(List<string> failedFiles)
+        public async Task CheckFiles(List<string> failedFiles)
         {
             if (failedFiles.Count > 0)
             {
+                List<string> files = failedFiles;
                 string errorMessage = "The following required files are missing: ";
-                foreach (string fail in failedFiles)
+                foreach (string fail in files)
                     errorMessage += "\n - " + fail;
                 MessageBox.Show(errorMessage, "Required Files Missing", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {
-                ReadAllSettingsFromFile();
+                await ReadAllSettingsFromFile();
 
                 if (userInfo.Name != "")
                 {
@@ -387,14 +383,17 @@ namespace GenshinImpact_WishOnStreamGUI
             }
         }
 
-        private void ReadAllSettingsFromFile()
+        private async Task ReadAllSettingsFromFile()
         {
             List<string> errors = new();
             if (!GetChoices())
                 errors.Add("choices.js");
             if (!GetRates())
                 errors.Add("rates.js");
-            if (!ReadUserSettingsFromFile())
+            if (await ReadUserSettingsFromFile())
+            {
+            }
+            else
                 errors.Add("local_creds.js");
             if (errors.Count > 0)
                 MessageBox.Show("There were errors reading the following files:\n\n   - " + string.Join("\n   - ", errors) + "\n\nThese are probably syntax errors. Kindly check your files or download the JS files again.");
@@ -500,7 +499,7 @@ namespace GenshinImpact_WishOnStreamGUI
                 MessageBox.Show(string.Join("\n\n", messages), "Save status", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        public string SaveUserSettingsToFile(UserInfo userInfo, bool revoke = false)
+        public string SaveUserSettingsToFile(UserInfo userInfo, bool revoke = false, bool fromExpiredToken = false)
         {
             string pathSettings = Path.Combine("js", "local_creds.js");
             string errors = "";
@@ -528,11 +527,13 @@ namespace GenshinImpact_WishOnStreamGUI
             if (errors == "")
             {
                 UpdateUIPanelSettingsWithUserInfo(userInfo);
-                if (!userInfo.RedeemEnabled && !userInfo.TwitchCommandEnabled && !freshCredsFile)
-                    MessageBox.Show("You have not selected any way for your viewers to wish. Settings saved anyway.", "No option selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                if (!fromExpiredToken)
+                {
+                    if (!userInfo.RedeemEnabled && !userInfo.TwitchCommandEnabled && !freshCredsFile)
+                        MessageBox.Show("You have not selected any way for your viewers to wish. Settings saved anyway.", "No option selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
-                Console.WriteLine(userInfo.Token);
-                errors = "User settings saved successfully!";
+                    errors = "User settings saved successfully!";
+                }
                 using StreamWriter writer = new(pathSettings);
                 writer.WriteLine("var channelName = \'" + userInfo.Name + "\';");
                 writer.WriteLine("var channelID = \'" + userInfo.ID + "\';");
@@ -556,6 +557,39 @@ namespace GenshinImpact_WishOnStreamGUI
             userInfo = new (name: payload.ChannelName, id: payload.ChannelId);
             userInfo.Token = payload.Token;
             userInfo.Rewards = payload.Redeems;
+        }
+
+        private static async Task DownloadDefaultConfigs(List<string> items)
+        {
+            string baseUrl = "https://raw.githubusercontent.com/honganqi/GenshinWishOnStream/refs/heads/main/browser_source/";
+
+            foreach (string item in items)
+            {
+                string url = Path.Combine(baseUrl, item);
+                string file = await Interwebs.httpClient.GetStringAsync(url);
+                string saveTo = Path.Combine(Application.StartupPath, item.Replace('/', Path.DirectorySeparatorChar));
+                File.WriteAllText(saveTo, file);
+            }
+        }
+        private async void ResetConfig(List<string> fileList, string question, Button btn)
+        {
+            DialogResult exitAsk = MessageBox.Show(question, "Reset File", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            try
+            {
+                btn.Enabled = false;
+                if (exitAsk == DialogResult.Yes)
+                {
+                    await DownloadDefaultConfigs(fileList);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error downloading file(s):\n{ex.Message}");
+            }
+            finally
+            {
+                btn.Enabled = true;
+            }
         }
         #endregion
 
@@ -655,25 +689,55 @@ namespace GenshinImpact_WishOnStreamGUI
                 e.Cancel = true;
         }
 
-        private void MainWindow_Shown(object sender, EventArgs e)
+        private async void MainWindow_Shown(object sender, EventArgs e)
         {
-            // check user and settings
-            List<string> failedFiles = CheckSettings();
-            CheckFiles(failedFiles);
-            var panel = panelSettings;
-            if ((failedFiles.Count == 0))
+            try
             {
-                ReadUserSettingsFromFile();
-                panel = panelCharacters;
-                if (userInfo.ID != "")
-                    UpdateSettingsRewards();
+                // update UI after authentication
+                httpServer.AuthCompleted += async payload =>
+                {
+                    if (InvokeRequired)
+                    {
+                        BeginInvoke(new Action(async () =>
+                        {
+                            await HandleAuthSync(payload);
+                        }));
+                    }
+                    else
+                    {
+                        await HandleAuthSync(payload);
+                    }
+                };
+
+                // check user and settings
+                List<string> failedFiles = await CheckSettings();
+                await CheckFiles(failedFiles);
+                var panel = panelSettings;
+                if ((failedFiles.Count == 0))
+                {
+                    panel = panelCharacters;
+                    if (userInfo.ID != "")
+                        UpdateSettingsRewards();
+                }
+                SwitchPanel(panel);
+
+                httpServer.Start();
+
+                // check for GUI app updates
+                CheckUpdate(updateurl);
             }
-            SwitchPanel(panel);
+            catch (Exception ex)
+            {
 
-            httpServer.Start();
+            }
 
-            // check for GUI app updates
-            CheckUpdate(updateurl);
+        }
+
+        private async Task HandleAuthSync(HttpServer.AuthPayload payload)
+        {
+            UpdateUserInfoFromAuthPayload(payload);
+            await UpdateUIPanelSettingsWithUserInfo(userInfo);
+            MessageBox.Show("Authentication success!", "", MessageBoxButtons.OK);
         }
 
         private void btnMaximize_Click(object sender, EventArgs e)
@@ -1267,9 +1331,17 @@ namespace GenshinImpact_WishOnStreamGUI
                     info.Duration = duration;
         }
 
-        public void UpdateUIPanelSettingsWithUserInfo(UserInfo userInfo)
+        public async Task UpdateUIPanelSettingsWithUserInfo(UserInfo userInfo)
         {
-            if (ControlInvokeRequired(txtUsername, () => UpdateUIPanelSettingsWithUserInfo(userInfo))) return;
+            if (InvokeRequired)
+            {
+                await (Task)Invoke(new Func<Task>(async () =>
+                {
+                    await UpdateUIPanelSettingsWithUserInfo(userInfo);
+                }));
+
+                return;
+            }
             txtUsername.Text = userInfo.Name;
             if (userInfo.Name != "")
             {
@@ -1405,5 +1477,39 @@ namespace GenshinImpact_WishOnStreamGUI
                 panelDullBlades.Controls.Remove(control);
         }
         #endregion
+
+        private async void btnResetChoices_Click(object sender, EventArgs e)
+        {
+            List<string> list = ["js/choices.js"];
+            string question = "Are you sure you want to reset the character list (choices.js)? If you customized it, make sure you have a backup before continuing.";
+            Button btn = btnResetChoices;
+            ResetConfig(list, question, btn);
+        }
+
+        private async void btnResetRates_Click(object sender, EventArgs e)
+        {
+            List<string> list = ["js/rates.js"];
+            string question = "Are you sure you want to reset the rates (rates.js)? If you customized it, make sure you have a backup before continuing.";
+            Button btn = btnResetRates;
+            ResetConfig(list, question, btn);
+        }
+
+        private async void btnResetChoicesRates_Click(object sender, EventArgs e)
+        {
+            List<string> list = ["js/choices.js", "js/rates.js"];
+            string question = "Are you sure you want to reset both the character list (choices.js) and the rates (rates.js)? If you customized them, make sure you have backups before continuing.";
+            Button btn = btnResetChoicesRates;
+            ResetConfig(list, question, btn);
+        }
+
+        private async void MainWindow_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnUpdateRewards_Click(object sender, EventArgs e)
+        {
+            UpdateSettingsRewards();
+        }
     }
 }

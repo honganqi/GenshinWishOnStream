@@ -55,6 +55,10 @@ namespace GenshinImpact_WishOnStreamGUI
             this.btnAddStarValue = new System.Windows.Forms.Button();
             this.labelTitleCharacters = new System.Windows.Forms.Label();
             this.panelSettings = new System.Windows.Forms.Panel();
+            this.btnResetChoicesRates = new System.Windows.Forms.Button();
+            this.btnResetRates = new System.Windows.Forms.Button();
+            this.labelReset = new System.Windows.Forms.Label();
+            this.btnResetChoices = new System.Windows.Forms.Button();
             this.labelPullRewards = new System.Windows.Forms.Label();
             this.btnUpdateRewards = new System.Windows.Forms.Button();
             this.btnCopyAuthLink = new System.Windows.Forms.Label();
@@ -463,6 +467,10 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelSettings.AutoScroll = true;
             this.panelSettings.AutoSize = true;
             this.panelSettings.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.panelSettings.Controls.Add(this.btnResetChoicesRates);
+            this.panelSettings.Controls.Add(this.btnResetRates);
+            this.panelSettings.Controls.Add(this.labelReset);
+            this.panelSettings.Controls.Add(this.btnResetChoices);
             this.panelSettings.Controls.Add(this.labelPullRewards);
             this.panelSettings.Controls.Add(this.btnUpdateRewards);
             this.panelSettings.Controls.Add(this.btnCopyAuthLink);
@@ -489,6 +497,48 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelSettings.Size = new System.Drawing.Size(823, 457);
             this.panelSettings.TabIndex = 16;
             // 
+            // btnResetChoicesRates
+            // 
+            this.btnResetChoicesRates.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnResetChoicesRates.Location = new System.Drawing.Point(357, 265);
+            this.btnResetChoicesRates.Name = "btnResetChoicesRates";
+            this.btnResetChoicesRates.Size = new System.Drawing.Size(74, 27);
+            this.btnResetChoicesRates.TabIndex = 53;
+            this.btnResetChoicesRates.Text = "Both";
+            this.btnResetChoicesRates.UseVisualStyleBackColor = true;
+            this.btnResetChoicesRates.Click += new System.EventHandler(this.btnResetChoicesRates_Click);
+            // 
+            // btnResetRates
+            // 
+            this.btnResetRates.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnResetRates.Location = new System.Drawing.Point(277, 265);
+            this.btnResetRates.Name = "btnResetRates";
+            this.btnResetRates.Size = new System.Drawing.Size(74, 27);
+            this.btnResetRates.TabIndex = 52;
+            this.btnResetRates.Text = "Rates";
+            this.btnResetRates.UseVisualStyleBackColor = true;
+            this.btnResetRates.Click += new System.EventHandler(this.btnResetRates_Click);
+            // 
+            // labelReset
+            // 
+            this.labelReset.AutoSize = true;
+            this.labelReset.Location = new System.Drawing.Point(151, 269);
+            this.labelReset.Name = "labelReset";
+            this.labelReset.Size = new System.Drawing.Size(40, 17);
+            this.labelReset.TabIndex = 51;
+            this.labelReset.Text = "Reset";
+            // 
+            // btnResetChoices
+            // 
+            this.btnResetChoices.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnResetChoices.Location = new System.Drawing.Point(197, 265);
+            this.btnResetChoices.Name = "btnResetChoices";
+            this.btnResetChoices.Size = new System.Drawing.Size(74, 27);
+            this.btnResetChoices.TabIndex = 50;
+            this.btnResetChoices.Text = "Characters";
+            this.btnResetChoices.UseVisualStyleBackColor = true;
+            this.btnResetChoices.Click += new System.EventHandler(this.btnResetChoices_Click);
+            // 
             // labelPullRewards
             // 
             this.labelPullRewards.AutoSize = true;
@@ -511,6 +561,7 @@ namespace GenshinImpact_WishOnStreamGUI
             this.btnUpdateRewards.TabIndex = 47;
             this.btnUpdateRewards.Text = "Refresh Rewards";
             this.btnUpdateRewards.UseVisualStyleBackColor = true;
+            this.btnUpdateRewards.Click += new System.EventHandler(this.btnUpdateRewards_Click);
             // 
             // btnCopyAuthLink
             // 
@@ -810,6 +861,10 @@ namespace GenshinImpact_WishOnStreamGUI
         private System.Windows.Forms.Label btnCopyAuthLink;
         private System.Windows.Forms.Button btnUpdateRewards;
         private System.Windows.Forms.Label labelPullRewards;
+        private System.Windows.Forms.Button btnResetRates;
+        private System.Windows.Forms.Label labelReset;
+        private System.Windows.Forms.Button btnResetChoices;
+        private System.Windows.Forms.Button btnResetChoicesRates;
     }
 }
 
