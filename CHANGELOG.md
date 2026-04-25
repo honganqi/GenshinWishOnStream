@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in
 this file.
 
+## 1.10 - 2026/04/24
+### Added
+* Added Columbina, Zibai, Illuga, Varka, Linnea, Candace (poor Candace, I forgot about her)
+* GUI: Added "Reset" buttons to restore Character List `choices.js` and Rates `rates.js` by downloading from GitHub
+* GUI: User is now forced to refresh when Twitch token is expired
+### Changed
+* Updated all images to higher resolution versions from Fandom
+### Fixed
+* GUI: "Refresh Rewards" button is now functional but not tested (wasn't supposed to be visible before since I haven't been able to make it functional yet)
+* GUI: Now shows more details of why Rewards aren't getting refreshed by getting the backend to send more details about the error (user was left clueless before, it "just didn't work")
+* GUI: other minor fixes
+
 ## 1.9 - 2025/12/28
 ### Added
 * Added Flins, Nefer, Durin, Jahoda

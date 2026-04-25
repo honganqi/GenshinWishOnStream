@@ -1,6 +1,6 @@
 {
-	"version": "1.9.0.0",
-	"release_date": "2025-12-28T18:04:00",
-	"download_url": "https://github.com/honganqi/GenshinWishOnStream/releases/download/v1.9/GenshinWishOnStream.1.9.zip",
-	"description": "Break fix: backend repair, added characters"
+	"version": "1.10.0.0",
+	"release_date": "2026-04-26T9:37:00",
+	"download_url": "https://github.com/honganqi/GenshinWishOnStream/releases/download/v1.10/GenshinWishOnStream.1.10.zip",
+	"description": "Break fix: fix GUI, backend repair, added characters"
 }
