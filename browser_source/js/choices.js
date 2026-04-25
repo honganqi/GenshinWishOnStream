@@ -12,6 +12,7 @@ choices[4] = [
 	{name: "Barbara", element: "Hydro"},
 	{name: "Beidou", element: "Electro"},
 	{name: "Bennett", element: "Pyro"},
+	{name: "Candace", element: "Hydro"},
 	{name: "Charlotte", element: "Cryo"},
 	{name: "Chevreuse", element: "Pyro"},
 	{name: "Chongyun", element: "Cryo"},
@@ -26,6 +27,7 @@ choices[4] = [
 	{name: "Gorou", element: "Geo"},
 	{name: "Iansan", element: "Electro"},
 	{name: "Ifa", element: "Anemo"},
+	{name: "Illuga", element: "Geo"},
 	{name: "Jahoda", element: "Anemo"},
 	{name: "Kachina", element: "Geo"},
 	{name: "Kaeya", element: "Cryo"},
@@ -89,6 +91,7 @@ choices[5] = [
 	{name: "Kinich", element: "Dendro"},
 	{name: "Klee", element: "Pyro"},
 	{name: "Lauma", element: "Dendro"},
+	{name: "Linnea", element: "Geo"},
 	{name: "Lumine", element: "Anemo"},
 	{name: "Lyney", element: "Pyro"},
 	{name: "Mavuika", element: "Pyro"},
@@ -108,6 +111,7 @@ choices[5] = [
 	{name: "Tartaglia", element: "Hydro"},
 	{name: "Tighnari", element: "Dendro"},
 	{name: "Varesa", element: "Electro"},
+	{name: "Varka", element: "Anemo"},
 	{name: "Venti", element: "Anemo"},
 	{name: "Wanderer", element: "Anemo"},
 	{name: "Wriothesley", element: "Cryo"},
@@ -119,6 +123,7 @@ choices[5] = [
 	{name: "Yoimiya", element: "Pyro"},
 	{name: "Yumemizuki Mizuki", element: "Anemo"},
 	{name: "Zhongli", element: "Geo"},
+	{name: "Zibai", element: "Geo"},
 ];
 
 

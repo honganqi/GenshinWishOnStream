@@ -1,4 +1,4 @@
-/* Genshin Impact: Wish On Stream v1.9 by honganqi */
+/* Genshin Impact: Wish On Stream v1.10 by honganqi */
 /* https://github.com/honganqi/GenshinWishOnStream */
 
 var wrapper = document.getElementById('wrapper');
@@ -384,13 +384,11 @@ if (localToken != "") {
 // subscribe to redemptions
 async function subscribe() {
 	const genshinWisherClientId = 'rs83ihxx7l4k7jjeprsiz03ofvly8g';
-	const subscribeSecret = 'QtxFEQlcbCe/8AEqFVeCDEuG1cCqF/tb';
 	const res = await fetch(`${backendUrl}/subscribe`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			'Client-Id': genshinWisherClientId,
-			'x-subscribe-secret': subscribeSecret
+			'Client-Id': genshinWisherClientId
 		},
 		body: JSON.stringify({
 			broadcaster_user_id: channelID,
