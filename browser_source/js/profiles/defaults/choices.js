@@ -1,3 +1,5 @@
+// version: 20260424
+
 let choices = [];
 
 // 3-star choices
