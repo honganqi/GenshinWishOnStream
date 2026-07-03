@@ -38,6 +38,8 @@ namespace GenshinImpact_WishOnStreamGUI
             this.imgTwitch = new System.Windows.Forms.PictureBox();
             this.panelSocials = new System.Windows.Forms.Panel();
             this.label2 = new System.Windows.Forms.Label();
+            this.btnGetLatestChoices = new System.Windows.Forms.Button();
+            this.lblLatestChoices = new System.Windows.Forms.Label();
             this.btnCheck = new System.Windows.Forms.Button();
             this.btnPanelSettings = new System.Windows.Forms.Button();
             this.btnSave = new System.Windows.Forms.Button();
@@ -49,16 +51,28 @@ namespace GenshinImpact_WishOnStreamGUI
             this.labelTitle = new System.Windows.Forms.Label();
             this.panelTop = new System.Windows.Forms.Panel();
             this.btnMaximize = new System.Windows.Forms.Button();
+            this.cmbProfiles = new System.Windows.Forms.ComboBox();
+            this.labelProfiles = new System.Windows.Forms.Label();
             this.panelLeft = new System.Windows.Forms.Panel();
             this.panelCharacters = new System.Windows.Forms.Panel();
             this.btnSortCharacters = new System.Windows.Forms.Button();
             this.btnAddStarValue = new System.Windows.Forms.Button();
             this.labelTitleCharacters = new System.Windows.Forms.Label();
             this.panelSettings = new System.Windows.Forms.Panel();
-            this.btnResetChoicesRates = new System.Windows.Forms.Button();
-            this.btnResetRates = new System.Windows.Forms.Button();
-            this.labelReset = new System.Windows.Forms.Label();
-            this.btnResetChoices = new System.Windows.Forms.Button();
+            this.lblDownloadImagesStatus = new System.Windows.Forms.Label();
+            this.progressDownloadImages = new System.Windows.Forms.ProgressBar();
+            this.btnGetImages = new System.Windows.Forms.Button();
+            this.panelNewProfile = new System.Windows.Forms.Panel();
+            this.btnProfileCreateCancel = new System.Windows.Forms.Button();
+            this.cmbProfileCopyFrom = new System.Windows.Forms.ComboBox();
+            this.lblProfileCopyFrom = new System.Windows.Forms.Label();
+            this.lblProfileNewName = new System.Windows.Forms.Label();
+            this.txtNewProfile = new System.Windows.Forms.TextBox();
+            this.btnProfileCreateSave = new System.Windows.Forms.Button();
+            this.lblTokenExpired = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.btnProfileCreate = new System.Windows.Forms.Button();
+            this.btnResetDefaults = new System.Windows.Forms.Button();
             this.labelPullRewards = new System.Windows.Forms.Label();
             this.btnUpdateRewards = new System.Windows.Forms.Button();
             this.btnCopyAuthLink = new System.Windows.Forms.Label();
@@ -90,6 +104,7 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelLeft.SuspendLayout();
             this.panelCharacters.SuspendLayout();
             this.panelSettings.SuspendLayout();
+            this.panelNewProfile.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.imgTwitchConnect)).BeginInit();
             this.panelDullBlades.SuspendLayout();
             this.SuspendLayout();
@@ -177,6 +192,8 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelSocials.Controls.Add(this.imgYoutube);
             this.panelSocials.Controls.Add(this.label1);
             this.panelSocials.Controls.Add(this.imgTwitch);
+            this.panelSocials.Controls.Add(this.btnGetLatestChoices);
+            this.panelSocials.Controls.Add(this.lblLatestChoices);
             this.panelSocials.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.panelSocials.Location = new System.Drawing.Point(110, 493);
             this.panelSocials.Name = "panelSocials";
@@ -195,6 +212,34 @@ namespace GenshinImpact_WishOnStreamGUI
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(823, 2);
             this.label2.TabIndex = 83;
+            // 
+            // btnGetLatestChoices
+            // 
+            this.btnGetLatestChoices.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnGetLatestChoices.AutoSize = true;
+            this.btnGetLatestChoices.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
+            this.btnGetLatestChoices.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnGetLatestChoices.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.btnGetLatestChoices.Location = new System.Drawing.Point(495, 33);
+            this.btnGetLatestChoices.Name = "btnGetLatestChoices";
+            this.btnGetLatestChoices.Size = new System.Drawing.Size(170, 25);
+            this.btnGetLatestChoices.TabIndex = 64;
+            this.btnGetLatestChoices.Text = "Update Default Character List";
+            this.btnGetLatestChoices.UseVisualStyleBackColor = false;
+            this.btnGetLatestChoices.Visible = false;
+            this.btnGetLatestChoices.Click += new System.EventHandler(this.btnGetLatestChoices_Click);
+            // 
+            // lblLatestChoices
+            // 
+            this.lblLatestChoices.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblLatestChoices.AutoSize = true;
+            this.lblLatestChoices.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.lblLatestChoices.Location = new System.Drawing.Point(550, 17);
+            this.lblLatestChoices.Name = "lblLatestChoices";
+            this.lblLatestChoices.Size = new System.Drawing.Size(118, 13);
+            this.lblLatestChoices.TabIndex = 65;
+            this.lblLatestChoices.Text = "Updated list available";
+            this.lblLatestChoices.Visible = false;
             // 
             // btnCheck
             // 
@@ -247,7 +292,7 @@ namespace GenshinImpact_WishOnStreamGUI
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(90, 90);
             this.btnSave.TabIndex = 40;
-            this.btnSave.Text = "Save";
+            this.btnSave.Text = "Set Active";
             this.btnSave.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.btnSave.UseVisualStyleBackColor = true;
             this.btnSave.Visible = false;
@@ -360,9 +405,11 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelTop.BackColor = System.Drawing.Color.DimGray;
             this.panelTop.Controls.Add(this.btnMinimize);
             this.panelTop.Controls.Add(this.btnMaximize);
+            this.panelTop.Controls.Add(this.cmbProfiles);
             this.panelTop.Controls.Add(this.labelVerNum);
             this.panelTop.Controls.Add(this.btnClose);
             this.panelTop.Controls.Add(this.labelTitle);
+            this.panelTop.Controls.Add(this.labelProfiles);
             this.panelTop.Dock = System.Windows.Forms.DockStyle.Top;
             this.panelTop.Location = new System.Drawing.Point(110, 0);
             this.panelTop.Name = "panelTop";
@@ -390,6 +437,32 @@ namespace GenshinImpact_WishOnStreamGUI
             this.btnMaximize.Text = "̶̶";
             this.btnMaximize.UseVisualStyleBackColor = false;
             this.btnMaximize.Click += new System.EventHandler(this.btnMaximize_Click);
+            // 
+            // cmbProfiles
+            // 
+            this.cmbProfiles.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmbProfiles.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbProfiles.FormattingEnabled = true;
+            this.cmbProfiles.Location = new System.Drawing.Point(555, 6);
+            this.cmbProfiles.Name = "cmbProfiles";
+            this.cmbProfiles.Size = new System.Drawing.Size(149, 25);
+            this.cmbProfiles.TabIndex = 55;
+            this.cmbProfiles.Visible = false;
+            this.cmbProfiles.DropDown += new System.EventHandler(this.cmbProfiles_DropDown);
+            this.cmbProfiles.SelectedIndexChanged += new System.EventHandler(this.cmbProfiles_SelectedIndexChanged);
+            // 
+            // labelProfiles
+            // 
+            this.labelProfiles.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelProfiles.AutoSize = true;
+            this.labelProfiles.ForeColor = System.Drawing.Color.White;
+            this.labelProfiles.Location = new System.Drawing.Point(494, 9);
+            this.labelProfiles.Name = "labelProfiles";
+            this.labelProfiles.Padding = new System.Windows.Forms.Padding(15, 0, 0, 0);
+            this.labelProfiles.Size = new System.Drawing.Size(60, 17);
+            this.labelProfiles.TabIndex = 54;
+            this.labelProfiles.Text = "Profile";
+            this.labelProfiles.Visible = false;
             // 
             // panelLeft
             // 
@@ -467,10 +540,14 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelSettings.AutoScroll = true;
             this.panelSettings.AutoSize = true;
             this.panelSettings.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.panelSettings.Controls.Add(this.btnResetChoicesRates);
-            this.panelSettings.Controls.Add(this.btnResetRates);
-            this.panelSettings.Controls.Add(this.labelReset);
-            this.panelSettings.Controls.Add(this.btnResetChoices);
+            this.panelSettings.Controls.Add(this.panelNewProfile);
+            this.panelSettings.Controls.Add(this.lblDownloadImagesStatus);
+            this.panelSettings.Controls.Add(this.progressDownloadImages);
+            this.panelSettings.Controls.Add(this.btnGetImages);
+            this.panelSettings.Controls.Add(this.lblTokenExpired);
+            this.panelSettings.Controls.Add(this.label4);
+            this.panelSettings.Controls.Add(this.btnProfileCreate);
+            this.panelSettings.Controls.Add(this.btnResetDefaults);
             this.panelSettings.Controls.Add(this.labelPullRewards);
             this.panelSettings.Controls.Add(this.btnUpdateRewards);
             this.panelSettings.Controls.Add(this.btnCopyAuthLink);
@@ -497,47 +574,148 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelSettings.Size = new System.Drawing.Size(823, 457);
             this.panelSettings.TabIndex = 16;
             // 
-            // btnResetChoicesRates
+            // lblDownloadImagesStatus
             // 
-            this.btnResetChoicesRates.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnResetChoicesRates.Location = new System.Drawing.Point(357, 265);
-            this.btnResetChoicesRates.Name = "btnResetChoicesRates";
-            this.btnResetChoicesRates.Size = new System.Drawing.Size(74, 27);
-            this.btnResetChoicesRates.TabIndex = 53;
-            this.btnResetChoicesRates.Text = "Both";
-            this.btnResetChoicesRates.UseVisualStyleBackColor = true;
-            this.btnResetChoicesRates.Click += new System.EventHandler(this.btnResetChoicesRates_Click);
+            this.lblDownloadImagesStatus.AutoSize = true;
+            this.lblDownloadImagesStatus.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.lblDownloadImagesStatus.Location = new System.Drawing.Point(197, 384);
+            this.lblDownloadImagesStatus.Name = "lblDownloadImagesStatus";
+            this.lblDownloadImagesStatus.Size = new System.Drawing.Size(38, 13);
+            this.lblDownloadImagesStatus.TabIndex = 66;
+            this.lblDownloadImagesStatus.Text = "label5";
+            this.lblDownloadImagesStatus.Visible = false;
             // 
-            // btnResetRates
+            // progressDownloadImages
             // 
-            this.btnResetRates.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnResetRates.Location = new System.Drawing.Point(277, 265);
-            this.btnResetRates.Name = "btnResetRates";
-            this.btnResetRates.Size = new System.Drawing.Size(74, 27);
-            this.btnResetRates.TabIndex = 52;
-            this.btnResetRates.Text = "Rates";
-            this.btnResetRates.UseVisualStyleBackColor = true;
-            this.btnResetRates.Click += new System.EventHandler(this.btnResetRates_Click);
+            this.progressDownloadImages.Location = new System.Drawing.Point(197, 383);
+            this.progressDownloadImages.Name = "progressDownloadImages";
+            this.progressDownloadImages.Size = new System.Drawing.Size(141, 23);
+            this.progressDownloadImages.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            this.progressDownloadImages.TabIndex = 65;
+            this.progressDownloadImages.Visible = false;
             // 
-            // labelReset
+            // btnGetImages
             // 
-            this.labelReset.AutoSize = true;
-            this.labelReset.Location = new System.Drawing.Point(151, 269);
-            this.labelReset.Name = "labelReset";
-            this.labelReset.Size = new System.Drawing.Size(40, 17);
-            this.labelReset.TabIndex = 51;
-            this.labelReset.Text = "Reset";
+            this.btnGetImages.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnGetImages.Location = new System.Drawing.Point(197, 350);
+            this.btnGetImages.Name = "btnGetImages";
+            this.btnGetImages.Size = new System.Drawing.Size(141, 27);
+            this.btnGetImages.TabIndex = 64;
+            this.btnGetImages.Text = "Get Default Images";
+            this.btnGetImages.UseVisualStyleBackColor = true;
+            this.btnGetImages.Click += new System.EventHandler(this.btnGetImages_Click);
             // 
-            // btnResetChoices
+            // panelNewProfile
             // 
-            this.btnResetChoices.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnResetChoices.Location = new System.Drawing.Point(197, 265);
-            this.btnResetChoices.Name = "btnResetChoices";
-            this.btnResetChoices.Size = new System.Drawing.Size(74, 27);
-            this.btnResetChoices.TabIndex = 50;
-            this.btnResetChoices.Text = "Characters";
-            this.btnResetChoices.UseVisualStyleBackColor = true;
-            this.btnResetChoices.Click += new System.EventHandler(this.btnResetChoices_Click);
+            this.panelNewProfile.Controls.Add(this.btnProfileCreateCancel);
+            this.panelNewProfile.Controls.Add(this.cmbProfileCopyFrom);
+            this.panelNewProfile.Controls.Add(this.lblProfileCopyFrom);
+            this.panelNewProfile.Controls.Add(this.lblProfileNewName);
+            this.panelNewProfile.Controls.Add(this.txtNewProfile);
+            this.panelNewProfile.Controls.Add(this.btnProfileCreateSave);
+            this.panelNewProfile.Location = new System.Drawing.Point(25, 272);
+            this.panelNewProfile.Name = "panelNewProfile";
+            this.panelNewProfile.Size = new System.Drawing.Size(762, 116);
+            this.panelNewProfile.TabIndex = 62;
+            this.panelNewProfile.Visible = false;
+            // 
+            // btnProfileCreateCancel
+            // 
+            this.btnProfileCreateCancel.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.btnProfileCreateCancel.Location = new System.Drawing.Point(383, 78);
+            this.btnProfileCreateCancel.Name = "btnProfileCreateCancel";
+            this.btnProfileCreateCancel.Size = new System.Drawing.Size(54, 25);
+            this.btnProfileCreateCancel.TabIndex = 67;
+            this.btnProfileCreateCancel.Text = "Cancel";
+            this.btnProfileCreateCancel.UseVisualStyleBackColor = true;
+            this.btnProfileCreateCancel.Click += new System.EventHandler(this.btnProfileCreateCancel_Click);
+            // 
+            // cmbProfileCopyFrom
+            // 
+            this.cmbProfileCopyFrom.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbProfileCopyFrom.FormattingEnabled = true;
+            this.cmbProfileCopyFrom.Location = new System.Drawing.Point(172, 47);
+            this.cmbProfileCopyFrom.Name = "cmbProfileCopyFrom";
+            this.cmbProfileCopyFrom.Size = new System.Drawing.Size(265, 25);
+            this.cmbProfileCopyFrom.TabIndex = 62;
+            // 
+            // lblProfileCopyFrom
+            // 
+            this.lblProfileCopyFrom.AutoSize = true;
+            this.lblProfileCopyFrom.Location = new System.Drawing.Point(96, 50);
+            this.lblProfileCopyFrom.Name = "lblProfileCopyFrom";
+            this.lblProfileCopyFrom.Size = new System.Drawing.Size(70, 17);
+            this.lblProfileCopyFrom.TabIndex = 66;
+            this.lblProfileCopyFrom.Text = "Copy from";
+            // 
+            // lblProfileNewName
+            // 
+            this.lblProfileNewName.AutoSize = true;
+            this.lblProfileNewName.Location = new System.Drawing.Point(52, 19);
+            this.lblProfileNewName.Name = "lblProfileNewName";
+            this.lblProfileNewName.Size = new System.Drawing.Size(114, 17);
+            this.lblProfileNewName.TabIndex = 65;
+            this.lblProfileNewName.Text = "New Profile Name";
+            // 
+            // txtNewProfile
+            // 
+            this.txtNewProfile.Location = new System.Drawing.Point(172, 16);
+            this.txtNewProfile.Name = "txtNewProfile";
+            this.txtNewProfile.Size = new System.Drawing.Size(265, 25);
+            this.txtNewProfile.TabIndex = 64;
+            // 
+            // btnProfileCreateSave
+            // 
+            this.btnProfileCreateSave.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.btnProfileCreateSave.Location = new System.Drawing.Point(172, 78);
+            this.btnProfileCreateSave.Name = "btnProfileCreateSave";
+            this.btnProfileCreateSave.Size = new System.Drawing.Size(45, 25);
+            this.btnProfileCreateSave.TabIndex = 63;
+            this.btnProfileCreateSave.Text = "Save";
+            this.btnProfileCreateSave.UseVisualStyleBackColor = true;
+            this.btnProfileCreateSave.Click += new System.EventHandler(this.btnProfileCreateSave_Click);
+            // 
+            // lblTokenExpired
+            // 
+            this.lblTokenExpired.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.lblTokenExpired.ForeColor = System.Drawing.Color.Red;
+            this.lblTokenExpired.Location = new System.Drawing.Point(401, 87);
+            this.lblTokenExpired.Name = "lblTokenExpired";
+            this.lblTokenExpired.Size = new System.Drawing.Size(303, 36);
+            this.lblTokenExpired.TabIndex = 63;
+            this.lblTokenExpired.Text = "expired";
+            this.lblTokenExpired.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(140, 290);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(51, 17);
+            this.label4.TabIndex = 59;
+            this.label4.Text = "Profiles";
+            // 
+            // btnProfileCreate
+            // 
+            this.btnProfileCreate.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.btnProfileCreate.Location = new System.Drawing.Point(197, 288);
+            this.btnProfileCreate.Name = "btnProfileCreate";
+            this.btnProfileCreate.Size = new System.Drawing.Size(128, 23);
+            this.btnProfileCreate.TabIndex = 56;
+            this.btnProfileCreate.Text = "Create New Profile";
+            this.btnProfileCreate.UseVisualStyleBackColor = true;
+            this.btnProfileCreate.Click += new System.EventHandler(this.btnProfileCreate_Click);
+            // 
+            // btnResetDefaults
+            // 
+            this.btnResetDefaults.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnResetDefaults.Location = new System.Drawing.Point(197, 321);
+            this.btnResetDefaults.Name = "btnResetDefaults";
+            this.btnResetDefaults.Size = new System.Drawing.Size(128, 27);
+            this.btnResetDefaults.TabIndex = 53;
+            this.btnResetDefaults.Text = "Reset Default Profile";
+            this.btnResetDefaults.UseVisualStyleBackColor = true;
+            this.btnResetDefaults.Click += new System.EventHandler(this.btnResetDefaults_Click);
             // 
             // labelPullRewards
             // 
@@ -804,6 +982,8 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelCharacters.PerformLayout();
             this.panelSettings.ResumeLayout(false);
             this.panelSettings.PerformLayout();
+            this.panelNewProfile.ResumeLayout(false);
+            this.panelNewProfile.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.imgTwitchConnect)).EndInit();
             this.panelDullBlades.ResumeLayout(false);
             this.panelDullBlades.PerformLayout();
@@ -861,10 +1041,24 @@ namespace GenshinImpact_WishOnStreamGUI
         private System.Windows.Forms.Label btnCopyAuthLink;
         private System.Windows.Forms.Button btnUpdateRewards;
         private System.Windows.Forms.Label labelPullRewards;
-        private System.Windows.Forms.Button btnResetRates;
-        private System.Windows.Forms.Label labelReset;
-        private System.Windows.Forms.Button btnResetChoices;
-        private System.Windows.Forms.Button btnResetChoicesRates;
+        private System.Windows.Forms.Button btnResetDefaults;
+        private System.Windows.Forms.Label labelProfiles;
+        private System.Windows.Forms.Button btnProfileCreate;
+        private System.Windows.Forms.ComboBox cmbProfiles;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Panel panelNewProfile;
+        private System.Windows.Forms.ComboBox cmbProfileCopyFrom;
+        private System.Windows.Forms.Label lblProfileCopyFrom;
+        private System.Windows.Forms.Label lblProfileNewName;
+        private System.Windows.Forms.TextBox txtNewProfile;
+        private System.Windows.Forms.Button btnProfileCreateSave;
+        private System.Windows.Forms.Button btnProfileCreateCancel;
+        private System.Windows.Forms.Label lblTokenExpired;
+        private System.Windows.Forms.Button btnGetLatestChoices;
+        private System.Windows.Forms.Label lblLatestChoices;
+        private System.Windows.Forms.Button btnGetImages;
+        private System.Windows.Forms.ProgressBar progressDownloadImages;
+        private System.Windows.Forms.Label lblDownloadImagesStatus;
     }
 }
 

@@ -304,7 +304,7 @@ namespace GenshinImpact_WishOnStreamGUI
             }
             else if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                throw new UnauthorizedAccessException($"Unable to get Twitch rewards:\n\nUser token has expired. Please use the \"Connect to Twitch\" button to reauthorize.");
+                throw new UnauthorizedAccessException($"Unable to get Twitch rewards: User token has expired.\nPlease use the \"Connect to Twitch\" button to reauthorize.");
             }
             else
             {
