@@ -8,7 +8,7 @@
     <ProjectGuid>{2C1D39A0-9DA8-4D6B-A1BC-4C31580EE9EB}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>GenshinImpact_WishOnStreamGUI</RootNamespace>
-    <AssemblyName>Genshin Impact - Wish On Stream GUI</AssemblyName>
+    <AssemblyName>GenshinWishOnStream</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -235,10 +235,55 @@
     <Compile Include="MainWindow.Designer.cs">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="panels\PanelCharactersControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="panels\PanelCharactersControl.Designer.cs">
+      <DependentUpon>PanelCharactersControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="panels\PanelDullBladesControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="panels\PanelDullBladesControl.Designer.cs">
+      <DependentUpon>PanelDullBladesControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="panels\PanelProfilesControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="panels\PanelProfilesControl.Designer.cs">
+      <DependentUpon>PanelProfilesControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="panels\PanelProfilesTopBarControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="panels\PanelProfilesTopBarControl.Designer.cs">
+      <DependentUpon>PanelProfilesTopBarControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="panels\PanelSettingsControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="panels\PanelSettingsControl.Designer.cs">
+      <DependentUpon>PanelSettingsControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="panels\PanelCharactersControl.resx">
+      <DependentUpon>PanelCharactersControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="panels\PanelDullBladesControl.resx">
+      <DependentUpon>PanelDullBladesControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="panels\PanelProfilesControl.resx">
+      <DependentUpon>PanelProfilesControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="panels\PanelProfilesTopBarControl.resx">
+      <DependentUpon>PanelProfilesTopBarControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="panels\PanelSettingsControl.resx">
+      <DependentUpon>PanelSettingsControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

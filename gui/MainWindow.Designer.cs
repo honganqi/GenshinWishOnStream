@@ -40,9 +40,9 @@ namespace GenshinImpact_WishOnStreamGUI
             this.label2 = new System.Windows.Forms.Label();
             this.btnGetLatestChoices = new System.Windows.Forms.Button();
             this.lblLatestChoices = new System.Windows.Forms.Label();
-            this.btnCheck = new System.Windows.Forms.Button();
             this.btnPanelSettings = new System.Windows.Forms.Button();
-            this.btnSave = new System.Windows.Forms.Button();
+            this.btnSaveProfile = new System.Windows.Forms.Button();
+            this.btnProfiles = new System.Windows.Forms.Button();
             this.btnPanelDullBlades = new System.Windows.Forms.Button();
             this.btnPanelCharacters = new System.Windows.Forms.Button();
             this.labelVerNum = new System.Windows.Forms.Label();
@@ -51,50 +51,15 @@ namespace GenshinImpact_WishOnStreamGUI
             this.labelTitle = new System.Windows.Forms.Label();
             this.panelTop = new System.Windows.Forms.Panel();
             this.btnMaximize = new System.Windows.Forms.Button();
-            this.cmbProfiles = new System.Windows.Forms.ComboBox();
-            this.labelProfiles = new System.Windows.Forms.Label();
             this.panelLeft = new System.Windows.Forms.Panel();
             this.panelCharacters = new System.Windows.Forms.Panel();
             this.btnSortCharacters = new System.Windows.Forms.Button();
             this.btnAddStarValue = new System.Windows.Forms.Button();
             this.labelTitleCharacters = new System.Windows.Forms.Label();
             this.panelSettings = new System.Windows.Forms.Panel();
-            this.lblDownloadImagesStatus = new System.Windows.Forms.Label();
-            this.progressDownloadImages = new System.Windows.Forms.ProgressBar();
-            this.btnGetImages = new System.Windows.Forms.Button();
-            this.panelNewProfile = new System.Windows.Forms.Panel();
-            this.btnProfileCreateCancel = new System.Windows.Forms.Button();
-            this.cmbProfileCopyFrom = new System.Windows.Forms.ComboBox();
-            this.lblProfileCopyFrom = new System.Windows.Forms.Label();
-            this.lblProfileNewName = new System.Windows.Forms.Label();
-            this.txtNewProfile = new System.Windows.Forms.TextBox();
-            this.btnProfileCreateSave = new System.Windows.Forms.Button();
-            this.lblTokenExpired = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.btnProfileCreate = new System.Windows.Forms.Button();
-            this.btnResetDefaults = new System.Windows.Forms.Button();
-            this.labelPullRewards = new System.Windows.Forms.Label();
-            this.btnUpdateRewards = new System.Windows.Forms.Button();
-            this.btnCopyAuthLink = new System.Windows.Forms.Label();
-            this.labelCommandTip = new System.Windows.Forms.Label();
-            this.chkCommand = new System.Windows.Forms.CheckBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.txtCommand = new System.Windows.Forms.TextBox();
-            this.btnRevokeToken = new System.Windows.Forms.Button();
-            this.cmbRedeems = new System.Windows.Forms.ComboBox();
-            this.labelTokenExpiry = new System.Windows.Forms.Label();
-            this.imgTwitchConnect = new System.Windows.Forms.PictureBox();
-            this.labelDurationMS = new System.Windows.Forms.Label();
-            this.txtDuration = new System.Windows.Forms.TextBox();
-            this.labelDuration = new System.Windows.Forms.Label();
-            this.txtUsername = new System.Windows.Forms.TextBox();
-            this.labelRedeem = new System.Windows.Forms.Label();
-            this.labelUsername = new System.Windows.Forms.Label();
-            this.labelTitleSettings = new System.Windows.Forms.Label();
-            this.chkRedeems = new System.Windows.Forms.CheckBox();
             this.panelDullBlades = new System.Windows.Forms.Panel();
-            this.btnSortDullBlades = new System.Windows.Forms.Button();
-            this.labelTitleDullBlades = new System.Windows.Forms.Label();
+            this.panelProfiles = new System.Windows.Forms.Panel();
+            this.panelProfilesTop = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.imgBMCSupport)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.imgSF)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.imgYoutube)).BeginInit();
@@ -103,10 +68,6 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelTop.SuspendLayout();
             this.panelLeft.SuspendLayout();
             this.panelCharacters.SuspendLayout();
-            this.panelSettings.SuspendLayout();
-            this.panelNewProfile.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.imgTwitchConnect)).BeginInit();
-            this.panelDullBlades.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnUpdateNotif
@@ -139,7 +100,7 @@ namespace GenshinImpact_WishOnStreamGUI
             // 
             this.imgSF.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.imgSF.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.imgSF.Location = new System.Drawing.Point(732, 38);
+            this.imgSF.Location = new System.Drawing.Point(763, 38);
             this.imgSF.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.imgSF.Name = "imgSF";
             this.imgSF.Size = new System.Drawing.Size(70, 20);
@@ -151,7 +112,7 @@ namespace GenshinImpact_WishOnStreamGUI
             // 
             this.imgYoutube.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.imgYoutube.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.imgYoutube.Location = new System.Drawing.Point(683, 41);
+            this.imgYoutube.Location = new System.Drawing.Point(714, 41);
             this.imgYoutube.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.imgYoutube.Name = "imgYoutube";
             this.imgYoutube.Size = new System.Drawing.Size(23, 16);
@@ -165,7 +126,7 @@ namespace GenshinImpact_WishOnStreamGUI
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Segoe UI", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.label1.Location = new System.Drawing.Point(754, 26);
+            this.label1.Location = new System.Drawing.Point(785, 26);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(50, 12);
             this.label1.TabIndex = 78;
@@ -175,7 +136,7 @@ namespace GenshinImpact_WishOnStreamGUI
             // 
             this.imgTwitch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.imgTwitch.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.imgTwitch.Location = new System.Drawing.Point(711, 41);
+            this.imgTwitch.Location = new System.Drawing.Point(742, 41);
             this.imgTwitch.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.imgTwitch.Name = "imgTwitch";
             this.imgTwitch.Size = new System.Drawing.Size(15, 16);
@@ -195,9 +156,9 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelSocials.Controls.Add(this.btnGetLatestChoices);
             this.panelSocials.Controls.Add(this.lblLatestChoices);
             this.panelSocials.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panelSocials.Location = new System.Drawing.Point(110, 493);
+            this.panelSocials.Location = new System.Drawing.Point(110, 532);
             this.panelSocials.Name = "panelSocials";
-            this.panelSocials.Size = new System.Drawing.Size(823, 75);
+            this.panelSocials.Size = new System.Drawing.Size(854, 75);
             this.panelSocials.TabIndex = 83;
             this.panelSocials.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Form_MouseDown);
             this.panelSocials.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Form_MouseMove);
@@ -210,7 +171,7 @@ namespace GenshinImpact_WishOnStreamGUI
             this.label2.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.label2.Location = new System.Drawing.Point(0, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(823, 2);
+            this.label2.Size = new System.Drawing.Size(854, 2);
             this.label2.TabIndex = 83;
             // 
             // btnGetLatestChoices
@@ -220,7 +181,7 @@ namespace GenshinImpact_WishOnStreamGUI
             this.btnGetLatestChoices.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
             this.btnGetLatestChoices.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnGetLatestChoices.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.btnGetLatestChoices.Location = new System.Drawing.Point(495, 33);
+            this.btnGetLatestChoices.Location = new System.Drawing.Point(526, 33);
             this.btnGetLatestChoices.Name = "btnGetLatestChoices";
             this.btnGetLatestChoices.Size = new System.Drawing.Size(170, 25);
             this.btnGetLatestChoices.TabIndex = 64;
@@ -234,31 +195,12 @@ namespace GenshinImpact_WishOnStreamGUI
             this.lblLatestChoices.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblLatestChoices.AutoSize = true;
             this.lblLatestChoices.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.lblLatestChoices.Location = new System.Drawing.Point(550, 17);
+            this.lblLatestChoices.Location = new System.Drawing.Point(581, 17);
             this.lblLatestChoices.Name = "lblLatestChoices";
             this.lblLatestChoices.Size = new System.Drawing.Size(118, 13);
             this.lblLatestChoices.TabIndex = 65;
             this.lblLatestChoices.Text = "Updated list available";
             this.lblLatestChoices.Visible = false;
-            // 
-            // btnCheck
-            // 
-            this.btnCheck.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnCheck.FlatAppearance.BorderSize = 0;
-            this.btnCheck.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            this.btnCheck.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnCheck.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnCheck.ForeColor = System.Drawing.Color.White;
-            this.btnCheck.Location = new System.Drawing.Point(10, 320);
-            this.btnCheck.Margin = new System.Windows.Forms.Padding(0);
-            this.btnCheck.Name = "btnCheck";
-            this.btnCheck.Size = new System.Drawing.Size(90, 90);
-            this.btnCheck.TabIndex = 43;
-            this.btnCheck.Text = "Check";
-            this.btnCheck.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.btnCheck.UseVisualStyleBackColor = true;
-            this.btnCheck.Visible = false;
-            this.btnCheck.Click += new System.EventHandler(this.btnCheck_Click);
             // 
             // btnPanelSettings
             // 
@@ -268,35 +210,51 @@ namespace GenshinImpact_WishOnStreamGUI
             this.btnPanelSettings.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnPanelSettings.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnPanelSettings.ForeColor = System.Drawing.Color.White;
-            this.btnPanelSettings.Location = new System.Drawing.Point(10, 430);
+            this.btnPanelSettings.Location = new System.Drawing.Point(10, 450);
             this.btnPanelSettings.Margin = new System.Windows.Forms.Padding(0);
             this.btnPanelSettings.Name = "btnPanelSettings";
             this.btnPanelSettings.Size = new System.Drawing.Size(90, 90);
-            this.btnPanelSettings.TabIndex = 41;
+            this.btnPanelSettings.TabIndex = 5;
             this.btnPanelSettings.Text = "Settings";
             this.btnPanelSettings.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.btnPanelSettings.UseVisualStyleBackColor = true;
-            this.btnPanelSettings.Visible = false;
             this.btnPanelSettings.Click += new System.EventHandler(this.btnPanelSettings_Click);
             // 
-            // btnSave
+            // btnSaveProfile
             // 
-            this.btnSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnSave.FlatAppearance.BorderSize = 0;
-            this.btnSave.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            this.btnSave.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnSave.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnSave.ForeColor = System.Drawing.Color.White;
-            this.btnSave.Location = new System.Drawing.Point(10, 210);
-            this.btnSave.Margin = new System.Windows.Forms.Padding(0);
-            this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(90, 90);
-            this.btnSave.TabIndex = 40;
-            this.btnSave.Text = "Set Active";
-            this.btnSave.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.btnSave.UseVisualStyleBackColor = true;
-            this.btnSave.Visible = false;
-            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
+            this.btnSaveProfile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnSaveProfile.FlatAppearance.BorderSize = 0;
+            this.btnSaveProfile.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            this.btnSaveProfile.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnSaveProfile.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnSaveProfile.ForeColor = System.Drawing.Color.White;
+            this.btnSaveProfile.Location = new System.Drawing.Point(10, 230);
+            this.btnSaveProfile.Margin = new System.Windows.Forms.Padding(0);
+            this.btnSaveProfile.Name = "btnSaveProfile";
+            this.btnSaveProfile.Size = new System.Drawing.Size(90, 90);
+            this.btnSaveProfile.TabIndex = 3;
+            this.btnSaveProfile.Text = "Save Profile";
+            this.btnSaveProfile.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.btnSaveProfile.UseVisualStyleBackColor = true;
+            this.btnSaveProfile.Click += new System.EventHandler(this.btnSave_Click);
+            // 
+            // btnProfiles
+            // 
+            this.btnProfiles.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnProfiles.FlatAppearance.BorderSize = 0;
+            this.btnProfiles.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            this.btnProfiles.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnProfiles.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnProfiles.ForeColor = System.Drawing.Color.White;
+            this.btnProfiles.Location = new System.Drawing.Point(10, 340);
+            this.btnProfiles.Margin = new System.Windows.Forms.Padding(0);
+            this.btnProfiles.Name = "btnProfiles";
+            this.btnProfiles.Size = new System.Drawing.Size(90, 90);
+            this.btnProfiles.TabIndex = 4;
+            this.btnProfiles.Text = "Profiles";
+            this.btnProfiles.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.btnProfiles.UseVisualStyleBackColor = true;
+            this.btnProfiles.Click += new System.EventHandler(this.btnPanelProfiles_Click);
             // 
             // btnPanelDullBlades
             // 
@@ -309,11 +267,10 @@ namespace GenshinImpact_WishOnStreamGUI
             this.btnPanelDullBlades.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btnPanelDullBlades.Name = "btnPanelDullBlades";
             this.btnPanelDullBlades.Size = new System.Drawing.Size(88, 90);
-            this.btnPanelDullBlades.TabIndex = 23;
+            this.btnPanelDullBlades.TabIndex = 2;
             this.btnPanelDullBlades.Text = "Dull Blades";
             this.btnPanelDullBlades.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.btnPanelDullBlades.UseVisualStyleBackColor = true;
-            this.btnPanelDullBlades.Visible = false;
             this.btnPanelDullBlades.Click += new System.EventHandler(this.btnPanelDullBlades_Click);
             // 
             // btnPanelCharacters
@@ -327,11 +284,10 @@ namespace GenshinImpact_WishOnStreamGUI
             this.btnPanelCharacters.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btnPanelCharacters.Name = "btnPanelCharacters";
             this.btnPanelCharacters.Size = new System.Drawing.Size(90, 90);
-            this.btnPanelCharacters.TabIndex = 11;
+            this.btnPanelCharacters.TabIndex = 1;
             this.btnPanelCharacters.Text = "Characters";
             this.btnPanelCharacters.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.btnPanelCharacters.UseVisualStyleBackColor = true;
-            this.btnPanelCharacters.Visible = false;
             this.btnPanelCharacters.Click += new System.EventHandler(this.btnPanelCharacters_Click);
             // 
             // labelVerNum
@@ -358,7 +314,7 @@ namespace GenshinImpact_WishOnStreamGUI
             this.btnMinimize.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnMinimize.Font = new System.Drawing.Font("Segoe UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnMinimize.ForeColor = System.Drawing.Color.White;
-            this.btnMinimize.Location = new System.Drawing.Point(715, 0);
+            this.btnMinimize.Location = new System.Drawing.Point(746, 0);
             this.btnMinimize.Margin = new System.Windows.Forms.Padding(0);
             this.btnMinimize.Name = "btnMinimize";
             this.btnMinimize.Size = new System.Drawing.Size(36, 36);
@@ -376,7 +332,7 @@ namespace GenshinImpact_WishOnStreamGUI
             this.btnClose.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnClose.Font = new System.Drawing.Font("Segoe UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnClose.ForeColor = System.Drawing.Color.White;
-            this.btnClose.Location = new System.Drawing.Point(787, 0);
+            this.btnClose.Location = new System.Drawing.Point(818, 0);
             this.btnClose.Margin = new System.Windows.Forms.Padding(0);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(36, 36);
@@ -405,15 +361,13 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelTop.BackColor = System.Drawing.Color.DimGray;
             this.panelTop.Controls.Add(this.btnMinimize);
             this.panelTop.Controls.Add(this.btnMaximize);
-            this.panelTop.Controls.Add(this.cmbProfiles);
             this.panelTop.Controls.Add(this.labelVerNum);
             this.panelTop.Controls.Add(this.btnClose);
             this.panelTop.Controls.Add(this.labelTitle);
-            this.panelTop.Controls.Add(this.labelProfiles);
             this.panelTop.Dock = System.Windows.Forms.DockStyle.Top;
             this.panelTop.Location = new System.Drawing.Point(110, 0);
             this.panelTop.Name = "panelTop";
-            this.panelTop.Size = new System.Drawing.Size(823, 36);
+            this.panelTop.Size = new System.Drawing.Size(854, 36);
             this.panelTop.TabIndex = 81;
             this.panelTop.DoubleClick += new System.EventHandler(this.panelTop_DoubleClick);
             this.panelTop.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Form_MouseDown);
@@ -429,7 +383,7 @@ namespace GenshinImpact_WishOnStreamGUI
             this.btnMaximize.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnMaximize.Font = new System.Drawing.Font("Segoe UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnMaximize.ForeColor = System.Drawing.Color.White;
-            this.btnMaximize.Location = new System.Drawing.Point(751, 0);
+            this.btnMaximize.Location = new System.Drawing.Point(782, 0);
             this.btnMaximize.Margin = new System.Windows.Forms.Padding(0);
             this.btnMaximize.Name = "btnMaximize";
             this.btnMaximize.Size = new System.Drawing.Size(36, 36);
@@ -438,44 +392,18 @@ namespace GenshinImpact_WishOnStreamGUI
             this.btnMaximize.UseVisualStyleBackColor = false;
             this.btnMaximize.Click += new System.EventHandler(this.btnMaximize_Click);
             // 
-            // cmbProfiles
-            // 
-            this.cmbProfiles.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmbProfiles.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbProfiles.FormattingEnabled = true;
-            this.cmbProfiles.Location = new System.Drawing.Point(555, 6);
-            this.cmbProfiles.Name = "cmbProfiles";
-            this.cmbProfiles.Size = new System.Drawing.Size(149, 25);
-            this.cmbProfiles.TabIndex = 55;
-            this.cmbProfiles.Visible = false;
-            this.cmbProfiles.DropDown += new System.EventHandler(this.cmbProfiles_DropDown);
-            this.cmbProfiles.SelectedIndexChanged += new System.EventHandler(this.cmbProfiles_SelectedIndexChanged);
-            // 
-            // labelProfiles
-            // 
-            this.labelProfiles.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.labelProfiles.AutoSize = true;
-            this.labelProfiles.ForeColor = System.Drawing.Color.White;
-            this.labelProfiles.Location = new System.Drawing.Point(494, 9);
-            this.labelProfiles.Name = "labelProfiles";
-            this.labelProfiles.Padding = new System.Windows.Forms.Padding(15, 0, 0, 0);
-            this.labelProfiles.Size = new System.Drawing.Size(60, 17);
-            this.labelProfiles.TabIndex = 54;
-            this.labelProfiles.Text = "Profile";
-            this.labelProfiles.Visible = false;
-            // 
             // panelLeft
             // 
             this.panelLeft.BackColor = System.Drawing.Color.Black;
             this.panelLeft.Controls.Add(this.btnPanelDullBlades);
-            this.panelLeft.Controls.Add(this.btnCheck);
             this.panelLeft.Controls.Add(this.btnPanelSettings);
-            this.panelLeft.Controls.Add(this.btnSave);
+            this.panelLeft.Controls.Add(this.btnSaveProfile);
+            this.panelLeft.Controls.Add(this.btnProfiles);
             this.panelLeft.Controls.Add(this.btnPanelCharacters);
             this.panelLeft.Dock = System.Windows.Forms.DockStyle.Left;
             this.panelLeft.Location = new System.Drawing.Point(0, 0);
             this.panelLeft.Name = "panelLeft";
-            this.panelLeft.Size = new System.Drawing.Size(110, 568);
+            this.panelLeft.Size = new System.Drawing.Size(110, 607);
             this.panelLeft.TabIndex = 82;
             this.panelLeft.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Form_MouseDown);
             this.panelLeft.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Form_MouseMove);
@@ -493,7 +421,7 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelCharacters.Location = new System.Drawing.Point(110, 36);
             this.panelCharacters.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.panelCharacters.Name = "panelCharacters";
-            this.panelCharacters.Size = new System.Drawing.Size(823, 457);
+            this.panelCharacters.Size = new System.Drawing.Size(854, 496);
             this.panelCharacters.TabIndex = 80;
             this.panelCharacters.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Form_MouseDown);
             this.panelCharacters.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Form_MouseMove);
@@ -501,29 +429,17 @@ namespace GenshinImpact_WishOnStreamGUI
             // 
             // btnSortCharacters
             // 
-            this.btnSortCharacters.AutoSize = true;
-            this.btnSortCharacters.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnSortCharacters.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnSortCharacters.Location = new System.Drawing.Point(314, 17);
+            this.btnSortCharacters.Location = new System.Drawing.Point(0, 0);
             this.btnSortCharacters.Name = "btnSortCharacters";
-            this.btnSortCharacters.Size = new System.Drawing.Size(40, 25);
-            this.btnSortCharacters.TabIndex = 15;
-            this.btnSortCharacters.Text = "Sort";
-            this.btnSortCharacters.UseVisualStyleBackColor = true;
-            this.btnSortCharacters.Click += new System.EventHandler(this.btnSortCharacters_Click);
+            this.btnSortCharacters.Size = new System.Drawing.Size(75, 23);
+            this.btnSortCharacters.TabIndex = 0;
             // 
             // btnAddStarValue
             // 
-            this.btnAddStarValue.AutoSize = true;
-            this.btnAddStarValue.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnAddStarValue.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAddStarValue.Location = new System.Drawing.Point(188, 17);
+            this.btnAddStarValue.Location = new System.Drawing.Point(0, 0);
             this.btnAddStarValue.Name = "btnAddStarValue";
-            this.btnAddStarValue.Size = new System.Drawing.Size(105, 25);
-            this.btnAddStarValue.TabIndex = 14;
-            this.btnAddStarValue.Text = "+ Add Star Value";
-            this.btnAddStarValue.UseVisualStyleBackColor = true;
-            this.btnAddStarValue.Click += new System.EventHandler(this.btnAddStarValue_Click);
+            this.btnAddStarValue.Size = new System.Drawing.Size(75, 23);
+            this.btnAddStarValue.TabIndex = 99;
             // 
             // labelTitleCharacters
             // 
@@ -540,424 +456,58 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelSettings.AutoScroll = true;
             this.panelSettings.AutoSize = true;
             this.panelSettings.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.panelSettings.Controls.Add(this.panelNewProfile);
-            this.panelSettings.Controls.Add(this.lblDownloadImagesStatus);
-            this.panelSettings.Controls.Add(this.progressDownloadImages);
-            this.panelSettings.Controls.Add(this.btnGetImages);
-            this.panelSettings.Controls.Add(this.lblTokenExpired);
-            this.panelSettings.Controls.Add(this.label4);
-            this.panelSettings.Controls.Add(this.btnProfileCreate);
-            this.panelSettings.Controls.Add(this.btnResetDefaults);
-            this.panelSettings.Controls.Add(this.labelPullRewards);
-            this.panelSettings.Controls.Add(this.btnUpdateRewards);
-            this.panelSettings.Controls.Add(this.btnCopyAuthLink);
-            this.panelSettings.Controls.Add(this.labelCommandTip);
-            this.panelSettings.Controls.Add(this.chkCommand);
-            this.panelSettings.Controls.Add(this.label3);
-            this.panelSettings.Controls.Add(this.txtCommand);
-            this.panelSettings.Controls.Add(this.btnRevokeToken);
-            this.panelSettings.Controls.Add(this.cmbRedeems);
-            this.panelSettings.Controls.Add(this.labelTokenExpiry);
-            this.panelSettings.Controls.Add(this.imgTwitchConnect);
-            this.panelSettings.Controls.Add(this.labelDurationMS);
-            this.panelSettings.Controls.Add(this.txtDuration);
-            this.panelSettings.Controls.Add(this.labelDuration);
-            this.panelSettings.Controls.Add(this.txtUsername);
-            this.panelSettings.Controls.Add(this.labelRedeem);
-            this.panelSettings.Controls.Add(this.labelUsername);
-            this.panelSettings.Controls.Add(this.labelTitleSettings);
-            this.panelSettings.Controls.Add(this.chkRedeems);
             this.panelSettings.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelSettings.Location = new System.Drawing.Point(110, 36);
+            this.panelSettings.Location = new System.Drawing.Point(0, 0);
             this.panelSettings.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.panelSettings.Name = "panelSettings";
-            this.panelSettings.Size = new System.Drawing.Size(823, 457);
+            this.panelSettings.Size = new System.Drawing.Size(964, 607);
             this.panelSettings.TabIndex = 16;
-            // 
-            // lblDownloadImagesStatus
-            // 
-            this.lblDownloadImagesStatus.AutoSize = true;
-            this.lblDownloadImagesStatus.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.lblDownloadImagesStatus.Location = new System.Drawing.Point(197, 384);
-            this.lblDownloadImagesStatus.Name = "lblDownloadImagesStatus";
-            this.lblDownloadImagesStatus.Size = new System.Drawing.Size(38, 13);
-            this.lblDownloadImagesStatus.TabIndex = 66;
-            this.lblDownloadImagesStatus.Text = "label5";
-            this.lblDownloadImagesStatus.Visible = false;
-            // 
-            // progressDownloadImages
-            // 
-            this.progressDownloadImages.Location = new System.Drawing.Point(197, 383);
-            this.progressDownloadImages.Name = "progressDownloadImages";
-            this.progressDownloadImages.Size = new System.Drawing.Size(141, 23);
-            this.progressDownloadImages.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
-            this.progressDownloadImages.TabIndex = 65;
-            this.progressDownloadImages.Visible = false;
-            // 
-            // btnGetImages
-            // 
-            this.btnGetImages.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnGetImages.Location = new System.Drawing.Point(197, 350);
-            this.btnGetImages.Name = "btnGetImages";
-            this.btnGetImages.Size = new System.Drawing.Size(141, 27);
-            this.btnGetImages.TabIndex = 64;
-            this.btnGetImages.Text = "Get Default Images";
-            this.btnGetImages.UseVisualStyleBackColor = true;
-            this.btnGetImages.Click += new System.EventHandler(this.btnGetImages_Click);
-            // 
-            // panelNewProfile
-            // 
-            this.panelNewProfile.Controls.Add(this.btnProfileCreateCancel);
-            this.panelNewProfile.Controls.Add(this.cmbProfileCopyFrom);
-            this.panelNewProfile.Controls.Add(this.lblProfileCopyFrom);
-            this.panelNewProfile.Controls.Add(this.lblProfileNewName);
-            this.panelNewProfile.Controls.Add(this.txtNewProfile);
-            this.panelNewProfile.Controls.Add(this.btnProfileCreateSave);
-            this.panelNewProfile.Location = new System.Drawing.Point(25, 272);
-            this.panelNewProfile.Name = "panelNewProfile";
-            this.panelNewProfile.Size = new System.Drawing.Size(762, 116);
-            this.panelNewProfile.TabIndex = 62;
-            this.panelNewProfile.Visible = false;
-            // 
-            // btnProfileCreateCancel
-            // 
-            this.btnProfileCreateCancel.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.btnProfileCreateCancel.Location = new System.Drawing.Point(383, 78);
-            this.btnProfileCreateCancel.Name = "btnProfileCreateCancel";
-            this.btnProfileCreateCancel.Size = new System.Drawing.Size(54, 25);
-            this.btnProfileCreateCancel.TabIndex = 67;
-            this.btnProfileCreateCancel.Text = "Cancel";
-            this.btnProfileCreateCancel.UseVisualStyleBackColor = true;
-            this.btnProfileCreateCancel.Click += new System.EventHandler(this.btnProfileCreateCancel_Click);
-            // 
-            // cmbProfileCopyFrom
-            // 
-            this.cmbProfileCopyFrom.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbProfileCopyFrom.FormattingEnabled = true;
-            this.cmbProfileCopyFrom.Location = new System.Drawing.Point(172, 47);
-            this.cmbProfileCopyFrom.Name = "cmbProfileCopyFrom";
-            this.cmbProfileCopyFrom.Size = new System.Drawing.Size(265, 25);
-            this.cmbProfileCopyFrom.TabIndex = 62;
-            // 
-            // lblProfileCopyFrom
-            // 
-            this.lblProfileCopyFrom.AutoSize = true;
-            this.lblProfileCopyFrom.Location = new System.Drawing.Point(96, 50);
-            this.lblProfileCopyFrom.Name = "lblProfileCopyFrom";
-            this.lblProfileCopyFrom.Size = new System.Drawing.Size(70, 17);
-            this.lblProfileCopyFrom.TabIndex = 66;
-            this.lblProfileCopyFrom.Text = "Copy from";
-            // 
-            // lblProfileNewName
-            // 
-            this.lblProfileNewName.AutoSize = true;
-            this.lblProfileNewName.Location = new System.Drawing.Point(52, 19);
-            this.lblProfileNewName.Name = "lblProfileNewName";
-            this.lblProfileNewName.Size = new System.Drawing.Size(114, 17);
-            this.lblProfileNewName.TabIndex = 65;
-            this.lblProfileNewName.Text = "New Profile Name";
-            // 
-            // txtNewProfile
-            // 
-            this.txtNewProfile.Location = new System.Drawing.Point(172, 16);
-            this.txtNewProfile.Name = "txtNewProfile";
-            this.txtNewProfile.Size = new System.Drawing.Size(265, 25);
-            this.txtNewProfile.TabIndex = 64;
-            // 
-            // btnProfileCreateSave
-            // 
-            this.btnProfileCreateSave.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.btnProfileCreateSave.Location = new System.Drawing.Point(172, 78);
-            this.btnProfileCreateSave.Name = "btnProfileCreateSave";
-            this.btnProfileCreateSave.Size = new System.Drawing.Size(45, 25);
-            this.btnProfileCreateSave.TabIndex = 63;
-            this.btnProfileCreateSave.Text = "Save";
-            this.btnProfileCreateSave.UseVisualStyleBackColor = true;
-            this.btnProfileCreateSave.Click += new System.EventHandler(this.btnProfileCreateSave_Click);
-            // 
-            // lblTokenExpired
-            // 
-            this.lblTokenExpired.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.lblTokenExpired.ForeColor = System.Drawing.Color.Red;
-            this.lblTokenExpired.Location = new System.Drawing.Point(401, 87);
-            this.lblTokenExpired.Name = "lblTokenExpired";
-            this.lblTokenExpired.Size = new System.Drawing.Size(303, 36);
-            this.lblTokenExpired.TabIndex = 63;
-            this.lblTokenExpired.Text = "expired";
-            this.lblTokenExpired.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(140, 290);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(51, 17);
-            this.label4.TabIndex = 59;
-            this.label4.Text = "Profiles";
-            // 
-            // btnProfileCreate
-            // 
-            this.btnProfileCreate.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.btnProfileCreate.Location = new System.Drawing.Point(197, 288);
-            this.btnProfileCreate.Name = "btnProfileCreate";
-            this.btnProfileCreate.Size = new System.Drawing.Size(128, 23);
-            this.btnProfileCreate.TabIndex = 56;
-            this.btnProfileCreate.Text = "Create New Profile";
-            this.btnProfileCreate.UseVisualStyleBackColor = true;
-            this.btnProfileCreate.Click += new System.EventHandler(this.btnProfileCreate_Click);
-            // 
-            // btnResetDefaults
-            // 
-            this.btnResetDefaults.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnResetDefaults.Location = new System.Drawing.Point(197, 321);
-            this.btnResetDefaults.Name = "btnResetDefaults";
-            this.btnResetDefaults.Size = new System.Drawing.Size(128, 27);
-            this.btnResetDefaults.TabIndex = 53;
-            this.btnResetDefaults.Text = "Reset Default Profile";
-            this.btnResetDefaults.UseVisualStyleBackColor = true;
-            this.btnResetDefaults.Click += new System.EventHandler(this.btnResetDefaults_Click);
-            // 
-            // labelPullRewards
-            // 
-            this.labelPullRewards.AutoSize = true;
-            this.labelPullRewards.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            this.labelPullRewards.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelPullRewards.Location = new System.Drawing.Point(249, 147);
-            this.labelPullRewards.Name = "labelPullRewards";
-            this.labelPullRewards.Size = new System.Drawing.Size(183, 13);
-            this.labelPullRewards.TabIndex = 49;
-            this.labelPullRewards.Text = "Getting Channel Points Rewards...";
-            this.labelPullRewards.Visible = false;
-            // 
-            // btnUpdateRewards
-            // 
-            this.btnUpdateRewards.Enabled = false;
-            this.btnUpdateRewards.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnUpdateRewards.Location = new System.Drawing.Point(468, 140);
-            this.btnUpdateRewards.Name = "btnUpdateRewards";
-            this.btnUpdateRewards.Size = new System.Drawing.Size(106, 27);
-            this.btnUpdateRewards.TabIndex = 47;
-            this.btnUpdateRewards.Text = "Refresh Rewards";
-            this.btnUpdateRewards.UseVisualStyleBackColor = true;
-            this.btnUpdateRewards.Click += new System.EventHandler(this.btnUpdateRewards_Click);
-            // 
-            // btnCopyAuthLink
-            // 
-            this.btnCopyAuthLink.AutoSize = true;
-            this.btnCopyAuthLink.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnCopyAuthLink.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.btnCopyAuthLink.Location = new System.Drawing.Point(201, 124);
-            this.btnCopyAuthLink.Name = "btnCopyAuthLink";
-            this.btnCopyAuthLink.Size = new System.Drawing.Size(192, 13);
-            this.btnCopyAuthLink.TabIndex = 46;
-            this.btnCopyAuthLink.Text = "(click here if using another browser)";
-            this.btnCopyAuthLink.Click += new System.EventHandler(this.btnCopyAuthLink_Click);
-            // 
-            // labelCommandTip
-            // 
-            this.labelCommandTip.AutoSize = true;
-            this.labelCommandTip.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelCommandTip.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.labelCommandTip.Location = new System.Drawing.Point(217, 200);
-            this.labelCommandTip.Name = "labelCommandTip";
-            this.labelCommandTip.Size = new System.Drawing.Size(314, 13);
-            this.labelCommandTip.TabIndex = 45;
-            this.labelCommandTip.Text = "include your preferred special symbol (@ and / not allowed)";
-            // 
-            // chkCommand
-            // 
-            this.chkCommand.AutoSize = true;
-            this.chkCommand.Enabled = false;
-            this.chkCommand.Location = new System.Drawing.Point(197, 178);
-            this.chkCommand.Name = "chkCommand";
-            this.chkCommand.Size = new System.Drawing.Size(15, 14);
-            this.chkCommand.TabIndex = 44;
-            this.chkCommand.UseVisualStyleBackColor = true;
-            this.chkCommand.CheckedChanged += new System.EventHandler(this.chkCommand_CheckedChanged);
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(84, 175);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(107, 17);
-            this.label3.TabIndex = 43;
-            this.label3.Text = "Twitch Command";
-            // 
-            // txtCommand
-            // 
-            this.txtCommand.Enabled = false;
-            this.txtCommand.Location = new System.Drawing.Point(218, 172);
-            this.txtCommand.Name = "txtCommand";
-            this.txtCommand.Size = new System.Drawing.Size(179, 25);
-            this.txtCommand.TabIndex = 42;
-            // 
-            // btnRevokeToken
-            // 
-            this.btnRevokeToken.AutoSize = true;
-            this.btnRevokeToken.Enabled = false;
-            this.btnRevokeToken.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRevokeToken.Location = new System.Drawing.Point(468, 55);
-            this.btnRevokeToken.Name = "btnRevokeToken";
-            this.btnRevokeToken.Size = new System.Drawing.Size(128, 27);
-            this.btnRevokeToken.TabIndex = 40;
-            this.btnRevokeToken.Text = "Disconnect and Reset";
-            this.btnRevokeToken.UseVisualStyleBackColor = true;
-            this.btnRevokeToken.Click += new System.EventHandler(this.btnRevokeToken_Click);
-            // 
-            // cmbRedeems
-            // 
-            this.cmbRedeems.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbRedeems.Enabled = false;
-            this.cmbRedeems.FormattingEnabled = true;
-            this.cmbRedeems.Location = new System.Drawing.Point(218, 141);
-            this.cmbRedeems.Name = "cmbRedeems";
-            this.cmbRedeems.Size = new System.Drawing.Size(244, 25);
-            this.cmbRedeems.TabIndex = 39;
-            // 
-            // labelTokenExpiry
-            // 
-            this.labelTokenExpiry.AutoSize = true;
-            this.labelTokenExpiry.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelTokenExpiry.ForeColor = System.Drawing.Color.Red;
-            this.labelTokenExpiry.Location = new System.Drawing.Point(194, 84);
-            this.labelTokenExpiry.Name = "labelTokenExpiry";
-            this.labelTokenExpiry.Size = new System.Drawing.Size(0, 13);
-            this.labelTokenExpiry.TabIndex = 38;
-            // 
-            // imgTwitchConnect
-            // 
-            this.imgTwitchConnect.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.imgTwitchConnect.Location = new System.Drawing.Point(197, 87);
-            this.imgTwitchConnect.Name = "imgTwitchConnect";
-            this.imgTwitchConnect.Size = new System.Drawing.Size(200, 36);
-            this.imgTwitchConnect.TabIndex = 37;
-            this.imgTwitchConnect.TabStop = false;
-            this.imgTwitchConnect.Click += new System.EventHandler(this.imgTwitchConnect_Click);
-            // 
-            // labelDurationMS
-            // 
-            this.labelDurationMS.AutoSize = true;
-            this.labelDurationMS.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelDurationMS.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.labelDurationMS.Location = new System.Drawing.Point(290, 228);
-            this.labelDurationMS.Name = "labelDurationMS";
-            this.labelDurationMS.Size = new System.Drawing.Size(89, 13);
-            this.labelDurationMS.TabIndex = 36;
-            this.labelDurationMS.Text = "(in milliseconds)";
-            // 
-            // txtDuration
-            // 
-            this.txtDuration.Enabled = false;
-            this.txtDuration.Location = new System.Drawing.Point(197, 222);
-            this.txtDuration.Name = "txtDuration";
-            this.txtDuration.Size = new System.Drawing.Size(87, 25);
-            this.txtDuration.TabIndex = 35;
-            // 
-            // labelDuration
-            // 
-            this.labelDuration.AutoSize = true;
-            this.labelDuration.Location = new System.Drawing.Point(69, 224);
-            this.labelDuration.Name = "labelDuration";
-            this.labelDuration.Size = new System.Drawing.Size(122, 17);
-            this.labelDuration.TabIndex = 34;
-            this.labelDuration.Text = "Duration On Screen";
-            // 
-            // txtUsername
-            // 
-            this.txtUsername.Enabled = false;
-            this.txtUsername.Location = new System.Drawing.Point(197, 56);
-            this.txtUsername.Name = "txtUsername";
-            this.txtUsername.Size = new System.Drawing.Size(265, 25);
-            this.txtUsername.TabIndex = 32;
-            // 
-            // labelRedeem
-            // 
-            this.labelRedeem.AutoSize = true;
-            this.labelRedeem.Location = new System.Drawing.Point(50, 144);
-            this.labelRedeem.Name = "labelRedeem";
-            this.labelRedeem.Size = new System.Drawing.Size(141, 17);
-            this.labelRedeem.TabIndex = 31;
-            this.labelRedeem.Text = "Channel Points Reward";
-            // 
-            // labelUsername
-            // 
-            this.labelUsername.AutoSize = true;
-            this.labelUsername.Location = new System.Drawing.Point(85, 59);
-            this.labelUsername.Name = "labelUsername";
-            this.labelUsername.Size = new System.Drawing.Size(106, 17);
-            this.labelUsername.TabIndex = 30;
-            this.labelUsername.Text = "Twitch Username";
-            // 
-            // labelTitleSettings
-            // 
-            this.labelTitleSettings.AutoSize = true;
-            this.labelTitleSettings.Font = new System.Drawing.Font("Segoe UI", 20.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelTitleSettings.Location = new System.Drawing.Point(12, 9);
-            this.labelTitleSettings.Name = "labelTitleSettings";
-            this.labelTitleSettings.Size = new System.Drawing.Size(122, 37);
-            this.labelTitleSettings.TabIndex = 29;
-            this.labelTitleSettings.Text = "Settings";
-            // 
-            // chkRedeems
-            // 
-            this.chkRedeems.AutoSize = true;
-            this.chkRedeems.Enabled = false;
-            this.chkRedeems.Location = new System.Drawing.Point(197, 147);
-            this.chkRedeems.Name = "chkRedeems";
-            this.chkRedeems.Size = new System.Drawing.Size(15, 14);
-            this.chkRedeems.TabIndex = 41;
-            this.chkRedeems.UseVisualStyleBackColor = true;
-            this.chkRedeems.CheckedChanged += new System.EventHandler(this.chkRedeems_CheckedChanged);
             // 
             // panelDullBlades
             // 
             this.panelDullBlades.AutoScroll = true;
             this.panelDullBlades.AutoSize = true;
             this.panelDullBlades.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.panelDullBlades.Controls.Add(this.btnSortDullBlades);
-            this.panelDullBlades.Controls.Add(this.labelTitleDullBlades);
             this.panelDullBlades.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelDullBlades.Location = new System.Drawing.Point(110, 36);
+            this.panelDullBlades.Location = new System.Drawing.Point(0, 0);
             this.panelDullBlades.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.panelDullBlades.Name = "panelDullBlades";
-            this.panelDullBlades.Size = new System.Drawing.Size(823, 457);
+            this.panelDullBlades.Size = new System.Drawing.Size(964, 607);
             this.panelDullBlades.TabIndex = 16;
             // 
-            // btnSortDullBlades
+            // panelProfiles
             // 
-            this.btnSortDullBlades.AutoSize = true;
-            this.btnSortDullBlades.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnSortDullBlades.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnSortDullBlades.Location = new System.Drawing.Point(188, 17);
-            this.btnSortDullBlades.Name = "btnSortDullBlades";
-            this.btnSortDullBlades.Size = new System.Drawing.Size(40, 25);
-            this.btnSortDullBlades.TabIndex = 16;
-            this.btnSortDullBlades.Text = "Sort";
-            this.btnSortDullBlades.UseVisualStyleBackColor = true;
-            this.btnSortDullBlades.Click += new System.EventHandler(this.btnSortDullBlades_Click);
+            this.panelProfiles.AutoScroll = true;
+            this.panelProfiles.AutoSize = true;
+            this.panelProfiles.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.panelProfiles.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panelProfiles.Location = new System.Drawing.Point(0, 0);
+            this.panelProfiles.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
+            this.panelProfiles.Name = "panelProfiles";
+            this.panelProfiles.Size = new System.Drawing.Size(964, 607);
+            this.panelProfiles.TabIndex = 0;
             // 
-            // labelTitleDullBlades
+            // panelProfilesTop
             // 
-            this.labelTitleDullBlades.AutoSize = true;
-            this.labelTitleDullBlades.Font = new System.Drawing.Font("Segoe UI", 20.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelTitleDullBlades.Location = new System.Drawing.Point(12, 9);
-            this.labelTitleDullBlades.Name = "labelTitleDullBlades";
-            this.labelTitleDullBlades.Size = new System.Drawing.Size(160, 37);
-            this.labelTitleDullBlades.TabIndex = 15;
-            this.labelTitleDullBlades.Text = "Dull Blades";
+            this.panelProfilesTop.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panelProfilesTop.Location = new System.Drawing.Point(110, 36);
+            this.panelProfilesTop.Name = "panelProfilesTop";
+            this.panelProfilesTop.Size = new System.Drawing.Size(854, 42);
+            this.panelProfilesTop.TabIndex = 0;
             // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(933, 568);
-            this.Controls.Add(this.panelSettings);
+            this.ClientSize = new System.Drawing.Size(964, 607);
+            this.Controls.Add(this.panelProfilesTop);
             this.Controls.Add(this.panelCharacters);
-            this.Controls.Add(this.panelDullBlades);
             this.Controls.Add(this.panelSocials);
             this.Controls.Add(this.panelTop);
             this.Controls.Add(this.panelLeft);
+            this.Controls.Add(this.panelDullBlades);
+            this.Controls.Add(this.panelProfiles);
+            this.Controls.Add(this.panelSettings);
             this.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
@@ -965,7 +515,7 @@ namespace GenshinImpact_WishOnStreamGUI
             this.Name = "MainWindow";
             this.Text = "Genshin Impact: Wish On Stream";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainWindow_FormClosing);
-            this.Shown += new System.EventHandler(this.MainWindow_Shown);
+            this.Load += new System.EventHandler(this.MainWindow_Load);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainWindow_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MainWindow_MouseMove);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MainWindow_MouseUp);
@@ -980,13 +530,6 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelLeft.ResumeLayout(false);
             this.panelCharacters.ResumeLayout(false);
             this.panelCharacters.PerformLayout();
-            this.panelSettings.ResumeLayout(false);
-            this.panelSettings.PerformLayout();
-            this.panelNewProfile.ResumeLayout(false);
-            this.panelNewProfile.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.imgTwitchConnect)).EndInit();
-            this.panelDullBlades.ResumeLayout(false);
-            this.panelDullBlades.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1001,9 +544,9 @@ namespace GenshinImpact_WishOnStreamGUI
         public System.Windows.Forms.Label label1;
         public System.Windows.Forms.PictureBox imgTwitch;
         private System.Windows.Forms.Panel panelSocials;
-        private System.Windows.Forms.Button btnCheck;
         public System.Windows.Forms.Button btnPanelSettings;
-        private System.Windows.Forms.Button btnSave;
+        private System.Windows.Forms.Button btnSaveProfile;
+        private System.Windows.Forms.Button btnProfiles;
         public System.Windows.Forms.Button btnPanelDullBlades;
         private System.Windows.Forms.Button btnPanelCharacters;
         private System.Windows.Forms.Label labelVerNum;
@@ -1019,46 +562,11 @@ namespace GenshinImpact_WishOnStreamGUI
         private System.Windows.Forms.Label labelTitleCharacters;
         private System.Windows.Forms.Button btnSortCharacters;
         private System.Windows.Forms.Panel panelSettings;
-        private System.Windows.Forms.Button btnRevokeToken;
-        private System.Windows.Forms.ComboBox cmbRedeems;
-        private System.Windows.Forms.Label labelTokenExpiry;
-        private System.Windows.Forms.PictureBox imgTwitchConnect;
-        private System.Windows.Forms.Label labelDurationMS;
-        private System.Windows.Forms.TextBox txtDuration;
-        private System.Windows.Forms.Label labelDuration;
-        private System.Windows.Forms.TextBox txtUsername;
-        private System.Windows.Forms.Label labelRedeem;
-        private System.Windows.Forms.Label labelUsername;
-        private System.Windows.Forms.Label labelTitleSettings;
         private System.Windows.Forms.Panel panelDullBlades;
-        private System.Windows.Forms.Button btnSortDullBlades;
-        private System.Windows.Forms.Label labelTitleDullBlades;
-        private System.Windows.Forms.CheckBox chkCommand;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.TextBox txtCommand;
-        private System.Windows.Forms.CheckBox chkRedeems;
-        private System.Windows.Forms.Label labelCommandTip;
-        private System.Windows.Forms.Label btnCopyAuthLink;
-        private System.Windows.Forms.Button btnUpdateRewards;
-        private System.Windows.Forms.Label labelPullRewards;
-        private System.Windows.Forms.Button btnResetDefaults;
-        private System.Windows.Forms.Label labelProfiles;
-        private System.Windows.Forms.Button btnProfileCreate;
-        private System.Windows.Forms.ComboBox cmbProfiles;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.Panel panelNewProfile;
-        private System.Windows.Forms.ComboBox cmbProfileCopyFrom;
-        private System.Windows.Forms.Label lblProfileCopyFrom;
-        private System.Windows.Forms.Label lblProfileNewName;
-        private System.Windows.Forms.TextBox txtNewProfile;
-        private System.Windows.Forms.Button btnProfileCreateSave;
-        private System.Windows.Forms.Button btnProfileCreateCancel;
-        private System.Windows.Forms.Label lblTokenExpired;
         private System.Windows.Forms.Button btnGetLatestChoices;
         private System.Windows.Forms.Label lblLatestChoices;
-        private System.Windows.Forms.Button btnGetImages;
-        private System.Windows.Forms.ProgressBar progressDownloadImages;
-        private System.Windows.Forms.Label lblDownloadImagesStatus;
+        private System.Windows.Forms.Panel panelProfiles;
+        private System.Windows.Forms.Panel panelProfilesTop;
     }
 }
 

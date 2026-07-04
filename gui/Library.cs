@@ -1,4 +1,5 @@
 ﻿using System;
+using GenshinImpact_WishOnStreamGUI.panels;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -7,13 +8,727 @@ using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Windows.Forms;
 
 namespace GenshinImpact_WishOnStreamGUI
 {
+    public interface ILibraryService
+    {
+        StarList StarListObject { get; set; }
+        List<string> DullBlades { get; set; }
+        UserInfo UserInfoObject { get; set; }
+        HttpServer HttpServerObject { get; set; }
+        string[] CheckProfiles();
+        void SaveProfile(string selectedProfile);
+        void CopyProfile(string sourceProfile, string newProfile);
+        int GetDefaultCharacterListVersion();
+        Task<(bool httpOk, int latestCharacterListVersion)> CheckCharacterListUpdate();
+        bool ValidateOrRepairPullSettings(string selectedProfile);
+        bool ActivateProfile(string selectedProfile);
+        Task<bool> DownloadDefaultConfigs(List<string> items);
+        Task HandleAuthSync(HttpServer.AuthPayload payload);
+        Task ValidateUserSettingsFromFiles();
+        string SaveUserSettingsToFile(bool revoke = false, bool fromExpiredToken = false);
+        event Action<UserInfo> UpdateSettingsPanelWithUserInfo;
+        Task<(List<string>, long)> DownloadDefaultImages_Prefetch();
+        Task<bool> DownloadDefaultImages(List<string> paths, IProgress<DownloadProgress> progress = null);
+    }
+
+    public class Library : ILibraryService
+    {
+        readonly string jsPath = Path.Combine(Application.StartupPath, "js");
+        readonly string imgPath = Path.Combine(Application.StartupPath, "img");
+
+        public StarList StarListObject { get; set; } = new();
+        public List<string> DullBlades { get; set; } = new();
+
+        public UserInfo UserInfoObject { get; set; } = new();
+        public HttpServer HttpServerObject { get; set; } = new();
+        public event Action<UserInfo> UpdateSettingsPanelWithUserInfo;
+
+
+        #region Authentication
+        public void InitializeApp()
+        {
+            HttpServer httpServer = new();
+        }
+
+        public async Task HandleAuthSync(HttpServer.AuthPayload payload)
+        {
+            UserInfo tempUser = ReadUserSettingsFromFile();
+            UserInfoObject.UpdateUserInfoFromAuthPayload(payload);
+            SaveUserSettingsToFile();
+            UpdateSettingsPanelWithUserInfo.Invoke(UserInfoObject);
+        }
+        #endregion
+
+        #region Profiles
+        public void SaveProfile(string selectedProfile)
+        {
+            // create directory if it doesn't exist
+            string profilePath = Path.Combine(jsPath, "profiles", selectedProfile);
+            if (Directory.Exists(profilePath))
+            {
+                DialogResult exitAsk = MessageBox.Show("This will overwrite the profile. Are you sure?", "Confirm overwrite", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (exitAsk != DialogResult.Yes)
+                    return;
+            }
+            Directory.CreateDirectory(profilePath);
+            string pathChoices = Path.Combine(profilePath, "choices.js");
+            string pathRates = Path.Combine(profilePath, "rates.js");
+
+            List<string> messages = new();
+
+            if (StarListObject.Count > 0)
+            {
+                SortedDictionary<int, int> rates = new();
+                Dictionary<string, string> characterElements = new();
+                using (StreamWriter writer = new(pathChoices))
+                {
+                    writer.WriteLine("let choices = [];\n");
+
+                    // iterate over characters and rates
+                    foreach (KeyValuePair<int, CharacterListInStar> charListPair in StarListObject)
+                    {
+                        int starValue = charListPair.Key;
+                        CharacterListInStar charList = charListPair.Value;
+                        rates.Add(starValue, charList.PullRate);
+
+                        writer.WriteLine("// " + starValue + "-star choices");
+                        writer.WriteLine("choices[" + starValue + "] = [");
+
+                        foreach (Character character in charList)
+                        {
+                            writer.WriteLine("\t{name: \"" + character.CharacterName + "\", element: \"" + character.Element + "\"},");
+                            characterElements.Add(character.CharacterName, character.Element);
+                        }
+
+                        writer.WriteLine("];\n");
+                    }
+
+                    // dull blades
+                    if (DullBlades.Count > 0)
+                    {
+                        writer.WriteLine("\n\n");
+                        writer.WriteLine("let dullBlades = [");
+                        foreach (string bladeName in DullBlades)
+                            writer.WriteLine("\t\"" + bladeName + "\",");
+                        writer.WriteLine("];");
+                    }
+                }
+
+                // process rates
+                if (rates.Count > 0)
+                {
+                    using StreamWriter writer = new(pathRates);
+
+                    writer.WriteLine("let rates = [];\n");
+                    writer.WriteLine("// To customize this, the syntax is \"rates[x] = y\"");
+                    writer.WriteLine("// where \"x\" is the star value and \"y\" is the pull rate (out of 100)");
+
+                    foreach (KeyValuePair<int, int> ratePair in rates.Reverse())
+                    {
+                        int starValue = ratePair.Key;
+                        int rate = ratePair.Value;
+                        writer.WriteLine("rates[" + starValue + "] = " + rate + ";");
+                    }
+
+                    messages.Add("Pull settings saved successfully!");
+                }
+                else
+                {
+                    messages.Add("No rates found.");
+                }
+            }
+            else
+            {
+                messages.Add("There was an error in the Character table data.");
+            }
+
+            if (messages.Count > 0)
+                MessageBox.Show(string.Join("\n\n", messages), "Save status", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        public void CopyProfile(string sourceProfile, string newProfile)
+        {
+            string sourceProfilePath = Path.Combine(jsPath, "profiles", sourceProfile);
+            string newProfilePath = Path.Combine(jsPath, "profiles", newProfile);
+            if (Directory.Exists(newProfilePath))
+            {
+                DialogResult exitAsk = MessageBox.Show("It looks like the profile already exists. This will overwrite the profile. Are you sure?", "Confirm overwrite", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (exitAsk != DialogResult.Yes)
+                    return;
+            }
+            Directory.CreateDirectory(newProfilePath);
+            File.Copy(Path.Combine(sourceProfilePath, "choices.js"), Path.Combine(newProfilePath, "choices.js"), true);
+            File.Copy(Path.Combine(sourceProfilePath, "rates.js"), Path.Combine(newProfilePath, "rates.js"), true);
+        }
+
+        public string[] CheckProfiles()
+        {
+            // get profile directories and populate "profiles" combobox
+            string[] profiles = Directory.GetDirectories(Path.Combine(jsPath, "profiles"))
+                    .Select(Path.GetFileName)
+                    .ToArray();
+
+            return profiles;
+        }
+
+        public bool ActivateProfile(string selectedProfile)
+        {
+            // save profile before?
+            if (ReadPullSettingsFromFile(selectedProfile))
+            {
+                string sourceProfilePath = Path.Combine(jsPath, "profiles", selectedProfile);
+                string activeProfilePath = Path.Combine(jsPath);
+                List<string> filesToCopy = new()
+                {
+                    "rates.js",
+                    "choices.js",
+                };
+                foreach (string file in filesToCopy)
+                    File.Copy(Path.Combine(sourceProfilePath, file), Path.Combine(activeProfilePath, file), true);
+
+                return true;
+            }
+            return false;
+        }
+
+
+        #endregion
+
+        public int GetDefaultCharacterListVersion()
+        {
+            int currentVersion = 0;
+            // copy local config from "defaults" directory if it exists
+            string defaultConfigToCopy = Path.Combine(jsPath, "profiles", "default", "choices.js");
+
+            using (StreamReader reader = new(defaultConfigToCopy))
+            {
+                string firstLine = reader.ReadLine();
+                if (firstLine.StartsWith("// version:"))
+                {
+                    int.TryParse(firstLine.Replace("// version: ", ""), out currentVersion);
+                }
+            }
+            return currentVersion;
+        }
+
+        public async Task<(bool httpOk, int latestCharacterListVersion)> CheckCharacterListUpdate()
+        {
+            string choicesUrl = "https://raw.githubusercontent.com/honganqi/GenshinWishOnStream/main/browser_source/js/profiles/default/choices.js";
+
+            var request = Interwebs.httpClient.GetAsync(choicesUrl);
+
+            Task timeout = Task.Delay(3000);
+            await Task.WhenAny(timeout, request);
+
+            try
+            {
+                System.Net.Http.HttpResponseMessage response = request.Result;
+                if (response.IsSuccessStatusCode)
+                {
+                    var page = response.Content.ReadAsStringAsync();
+                    using var reader = new StringReader(page.Result);
+                    string choicesVersion = reader.ReadLine();
+                    if (choicesVersion.StartsWith("// version:"))
+                    {
+                        if (int.TryParse(choicesVersion.Replace("// version: ", ""), out int latestCharacterListVersion))
+                        {
+                            return (true, latestCharacterListVersion);
+                        }
+                    }
+                }
+                else
+                {
+                    switch (response.StatusCode)
+                    {
+                        case HttpStatusCode.NotFound:
+                            throw new Exception("The update file was not found on the server.");
+                        case HttpStatusCode.BadRequest:
+                            throw new Exception("");
+                        case HttpStatusCode.InternalServerError:
+                            throw new Exception("");
+                        case HttpStatusCode.MethodNotAllowed:
+                            throw new Exception("");
+                        case HttpStatusCode.Forbidden:
+                            throw new Exception("");
+                    }
+                }
+            }
+            catch (System.Net.Http.HttpRequestException)
+            {
+                throw;
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine(err.Message);
+            }
+
+            return (false, 0);
+        }
+
+        #region Pull Settings
+        public bool ReadPullRatesFile(string selectedProfile)
+        {
+            string fileToRead = Path.Combine(jsPath, "profiles", selectedProfile, "rates.js");
+            if (!File.Exists(fileToRead))
+                return false;
+
+            using (StreamReader sr = new(fileToRead))
+            {
+                while (sr.Peek() >= 0)
+                {
+                    string line = sr.ReadLine().Trim();
+                    string searchTerm = "rates[";
+                    int strpos = line.IndexOf(searchTerm);
+                    if (strpos == 0)
+                    {
+                        string[] pair = line.Split('=');
+                        string indexStr = pair[0].Remove(0, searchTerm.Length).Replace("]", "").Trim();
+                        if (!int.TryParse(indexStr, out int index))
+                            return false;
+
+                        string rateStr = pair[1].Replace(";", "").Trim();
+                        if (!int.TryParse(rateStr, out int rate))
+                            return false;
+
+                        StarListObject[index].PullRate = rate;
+                    }
+                }
+            }
+            return true;
+        }
+
+        public bool ReadCharacterListFile(string selectedProfile)
+        {
+            string profilePath = Path.Combine(jsPath, "profiles", selectedProfile);
+            StarListObject = new();
+            DullBlades = new();
+
+            if (!File.Exists(Path.Combine(profilePath, "choices.js")))
+                return false;
+
+            using StreamReader sr = new(Path.Combine(profilePath, "choices.js"));
+            int currentStarValue = 0;
+            bool isInsideCharacterBracket = false;
+            bool isInsideDullBladesBracket = false;
+            List<CharacterElementPair> charElemPairList = new();
+
+            while (sr.Peek() >= 0)
+            {
+                string line = sr.ReadLine().Trim();
+                string starValueStringStart = "choices[";
+                string starValueStringEnd = "];";
+                string elementDictionaryStart = "let elementDictionary = {";
+                string elementDictionaryEnd = "};";
+                string dullBladesStart = "let dullBlades = [";
+                string dullBladesEnd = "];";
+
+                int starValueStringIndex = line.IndexOf(starValueStringStart);
+                int starValueStringEndIndex = line.IndexOf(starValueStringEnd);
+                int elementDictionaryStartIndex = line.IndexOf(elementDictionaryStart);
+                int elementDictionaryEndIndex = line.IndexOf(elementDictionaryEnd);
+                int dullBladesStartIndex = line.IndexOf(dullBladesStart);
+                int dullBladesEndIndex = line.IndexOf(dullBladesEnd);
+
+                if (starValueStringIndex >= 0)
+                {
+                    isInsideCharacterBracket = true;
+                    string[] pair = line.Split('=');
+                    string indexStr = pair[0].Remove(0, starValueStringStart.Length).Replace("]", "").Trim();
+                    if (!int.TryParse(indexStr, out currentStarValue))
+                        return false;
+
+                    StarListObject.AddStar(currentStarValue);
+                }
+                else if ((starValueStringEndIndex >= 0) && (isInsideCharacterBracket))
+                {
+                    isInsideCharacterBracket = false;
+                }
+                else if (isInsideCharacterBracket)
+                {
+                    CharacterElementPair charElemPair = JsonConvert.DeserializeObject<CharacterElementPair>(line.Trim(','));
+                    charElemPairList.Add(charElemPair);
+                    StarListObject[currentStarValue].Add(charElemPair.Name);
+                    StarListObject[currentStarValue][charElemPair.Name].Star = currentStarValue;
+                    StarListObject[charElemPair.Name].Element = charElemPair.Element;
+                }
+                else if (dullBladesStartIndex >= 0)
+                {
+                    isInsideDullBladesBracket = true;
+                }
+                else if ((dullBladesEndIndex >= 0) && (isInsideDullBladesBracket))
+                {
+                    currentStarValue++;
+                    isInsideDullBladesBracket = false;
+                }
+                else if (isInsideDullBladesBracket)
+                {
+                    string dullBladeName = line.Replace("\"", "").Replace("\'", "").Replace(",", "").Trim();
+
+                    DullBlades.Add(dullBladeName);
+                }
+            }
+            return true;
+        }
+
+        public bool ValidateOrRepairPullSettings(string selectedProfile)
+        {
+            // check the JS files if they exist
+            // TO-DO: also check if valid
+            bool filesAreValid = ReadPullSettingsFromFile(selectedProfile);
+            if (!filesAreValid)
+            {
+                List<string> filesToCheck = new()
+                {
+                    "rates.js",
+                    "choices.js",
+                };
+                List<string> filesNotFound = new();
+
+                foreach (string toCheck in filesToCheck)
+                {
+                    if (!File.Exists(Path.Combine(jsPath, "profiles", selectedProfile, toCheck)))
+                    {
+                        filesNotFound.Add(toCheck);
+                        filesAreValid = false;
+
+                        // copy local config from "defaults" directory if it exists
+                        string defaultConfigToCopy = Path.Combine(jsPath, "profiles", "default", toCheck);
+                        string destinationPath = Path.Combine(jsPath, "profiles", selectedProfile, toCheck);
+
+                        if (File.Exists(defaultConfigToCopy))
+                        {
+                            File.Copy(defaultConfigToCopy, destinationPath);
+                            filesAreValid = true;
+                        }
+                    }
+                }
+                MessageBox.Show(
+                    $"The following files are missing from the selected profile: \n  - {String.Join("\n  - ", filesNotFound.ToArray())}\n\nThese files have been restored from the default profile.",
+                    "Files missing",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                    );
+            }
+
+            return filesAreValid;
+        }
+
+        public bool ReadPullSettingsFromFile(string selectedProfile)
+        {
+            bool first = ReadCharacterListFile(selectedProfile);
+            bool second = ReadPullRatesFile(selectedProfile);
+            if (ReadCharacterListFile(selectedProfile) && ReadPullRatesFile(selectedProfile))
+                return true;
+
+            return false;
+        }
+        #endregion
+
+        public async Task<bool> DownloadDefaultConfigs(List<string> items)
+        {
+            bool success = false;
+            string baseUrl = "https://raw.githubusercontent.com/honganqi/GenshinWishOnStream/refs/heads/main/browser_source/js/profiles/default/";
+
+            foreach (string item in items)
+            {
+                try
+                {
+                    string url = Path.Combine(baseUrl, item);
+                    string file = await Interwebs.httpClient.GetStringAsync(url);
+                    string saveTo = Path.Combine(jsPath, "profiles", "default", item);
+                    File.WriteAllText(saveTo, file);
+                    success = true;
+                }
+                catch (HttpRequestException)
+                {
+                    throw new Exception($"Unable to download default profile configs.\n\nUnable to connect to {baseUrl}.");
+                }
+            }
+            ReadPullSettingsFromFile("default"); // checks *.js files, updates characters/dullblades panel
+            return success;
+        }
+
+        public async Task<(List<string>, long)> DownloadDefaultImages_Prefetch()
+        {
+            List<string> paths = new();
+            long totalSize = 0;
+            try
+            {
+                string treeUrl = $"https://api.github.com/repos/honganqi/GenshinWishOnStream/git/trees/main?recursive=1";
+                Interwebs.httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("GenshinWisherGUI/" + Application.ProductVersion);
+                string treeJson = await Interwebs.httpClient.GetStringAsync(treeUrl);
+                using var tree = JsonDocument.Parse(treeJson);
+                paths = new();
+                totalSize = 0;
+
+                foreach (var entree in tree.RootElement
+                         .GetProperty("tree")
+                         .EnumerateArray())
+                {
+                    if (entree.GetProperty("type").GetString() != "blob")
+                        continue;
+
+                    string path = entree.GetProperty("path").GetString()!;
+                    string targetPath = "browser_source/img/profiles/default";
+                    if (!path.StartsWith(targetPath))
+                        continue;
+
+                    paths.Add(path);
+                    int fileSize = entree.GetProperty("size").GetInt32();
+                    totalSize += fileSize;
+                }
+
+                DialogResult ask = MessageBox.Show($"Image count: {paths.Count}\nTotal size: {FormatFileSize(totalSize)}\n\nContinue?", "Confirm download", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (ask != DialogResult.Yes)
+                    throw new Exception("Exiting");
+            }
+            catch (HttpRequestException)
+            {
+                throw new Exception("Unable to download default profile images.");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            return (paths, totalSize);
+        }
+
+        public async Task<bool> DownloadDefaultImages(List<string> paths, IProgress<DownloadProgress> progress = null)
+        {
+            bool success = false;
+            try
+            {
+                int downloaded = 0;
+
+                progress?.Report(new DownloadProgress
+                {
+                    FilesDownloaded = downloaded,
+                    FileCount = paths.Count
+                });
+
+                foreach (string path in paths)
+                {
+                    string downloadUrl = $"https://raw.githubusercontent.com/honganqi/GenshinWishOnStream/main/{path}";
+
+                    // store path and preserve source paths but strip the git stuff
+                    string localPath = Path.Combine(imgPath, path.Replace("browser_source/img/", ""));
+
+                    // create the directory if needed
+                    Directory.CreateDirectory(Path.GetDirectoryName(localPath));
+
+                    // download directly to disk
+                    using var response = await Interwebs.httpClient.GetAsync(downloadUrl);
+                    response.EnsureSuccessStatusCode();
+                    // var statusCode = response.StatusCode // if needed, lazy+tired now so pass
+                    using Stream remoteStream = await response.Content.ReadAsStreamAsync();
+                    using FileStream localStream = File.Create(localPath);
+                    await remoteStream.CopyToAsync(localStream);
+                    Console.WriteLine(path);
+
+                    downloaded++;
+
+                    progress?.Report(new DownloadProgress
+                    {
+                        FilesDownloaded = downloaded,
+                        FileCount = paths.Count
+                    });
+                }
+            }
+            catch (HttpRequestException)
+            {
+                throw new Exception($"Unable to download default images.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                //progressDownloadImages.Hide();
+                //lblDownloadImagesStatus.Show();
+            }
+
+            return success;
+        }
+
+        public string FormatFileSize(long bytes)
+        {
+            if (bytes == 0)
+                return "0 bytes";
+
+            string[] suffixes = { "B", "KB", "MB", "GB" };
+
+            int place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
+
+            // limit max to GB, I don't think there will be more than 7,000,000,000,000 Genshin characters which is the only thing this app will be downloading
+            place = Math.Min(place, suffixes.Length - 1);
+
+            double num = Math.Round(bytes / Math.Pow(1024, place), 1);
+
+            return $"{num:0.#} {suffixes[place]}";
+        }
+
+        #region User Info
+        public async Task ValidateUserSettingsFromFiles()
+        {
+            // check for local_creds.js file, create it if it doesn't exist
+            if (!File.Exists(Path.Combine(jsPath, "local_creds.js")))
+                SaveUserSettingsToFile(revoke: true);
+
+            // read and validate user settings, will set the userInfo variable if successful
+            ReadUserSettingsFromFile();
+        }
+
+        private UserInfo ReadUserSettingsFromFile()
+        {
+            UserInfo _userInfo = new();
+
+            Dictionary<string, string> userSettingsContents = new();
+            string pattern = @"var\s+(\w+)\s*=\s*(?:""([^""]*)""|'([^'\\]*(?:\\'[^'\\]*)*)'|(\d+|true|false))\s*;";
+            Regex regex = new(pattern);
+
+            List<string> searchTerms = new()
+            {
+                "channelName",
+                "channelID",
+                "localToken",
+                "redeemTitle",
+                "redeemEnabled",
+                "twitchCommandPrefix",
+                "twitchCommandEnabled",
+                "animation_duration"
+            };
+
+            using (StreamReader sr = new(Path.Combine("js", "local_creds.js")))
+            {
+                while (sr.Peek() >= 0)
+                {
+                    string line = sr.ReadLine().Trim();
+                    MatchCollection matches = regex.Matches(line);
+                    foreach (Match match in matches)
+                    {
+                        // verify property exists in the list of allowed properties
+                        string property = match.Groups[1].Value;
+                        if (searchTerms.Contains(property))
+                        {
+                            string stringValue = match.Groups[2].Value;
+                            string singleQuotedValue = match.Groups[3].Value;
+                            string nonQuotedValue = match.Groups[4].Value;
+                            string value;
+
+                            if (!string.IsNullOrEmpty(stringValue))
+                                value = stringValue; // Double-quoted string value
+                            else if (!string.IsNullOrEmpty(singleQuotedValue))
+                                value = singleQuotedValue.Replace(@"\'", @"'"); // Single-quoted string value including escaped single quotes
+                            else
+                                value = nonQuotedValue; // Numeric or boolean value
+                            userSettingsContents[property] = value;
+                        }
+                    }
+                }
+            }
+
+            if (userSettingsContents.Count > 0)
+            {
+                string name = userSettingsContents.ContainsKey("channelName") ? userSettingsContents["channelName"] : "";
+                string id = userSettingsContents.ContainsKey("channelID") ? userSettingsContents["channelID"] : "";
+                UserInfoObject.NewUser(name, id);
+                UserInfoObject.Token = userSettingsContents.ContainsKey("localToken") ? userSettingsContents["localToken"] : "";
+                UserInfoObject.Redeem = userSettingsContents.ContainsKey("redeemTitle") ? userSettingsContents["redeemTitle"] : "";
+                UserInfoObject.RedeemEnabled = (userSettingsContents.ContainsKey("redeemEnabled") && bool.Parse(userSettingsContents["redeemEnabled"])) ? bool.Parse(userSettingsContents["redeemEnabled"]) : false;
+                UserInfoObject.TwitchCommandPrefix = userSettingsContents.ContainsKey("twitchCommandPrefix") ? userSettingsContents["twitchCommandPrefix"] : "";
+                UserInfoObject.TwitchCommandEnabled = (userSettingsContents.ContainsKey("twitchCommandEnabled") && bool.Parse(userSettingsContents["twitchCommandEnabled"])) ? bool.Parse(userSettingsContents["twitchCommandEnabled"]) : false;
+                if (!userSettingsContents.ContainsKey("redeemEnabled") && UserInfoObject.Redeem != "")
+                    UserInfoObject.RedeemEnabled = true;
+                if (int.TryParse(userSettingsContents["animation_duration"], out int duration))
+                    UserInfoObject.Duration = duration;
+
+                _userInfo = UserInfoObject;
+            }
+
+            return _userInfo;
+        }
+
+        public string SaveUserSettingsToFile(bool revoke = false, bool fromExpiredToken = false)
+        {
+            string pathSettings = Path.Combine(jsPath, "local_creds.js");
+            string errors = "";
+            bool freshCredsFile = false;
+
+            if (!File.Exists(pathSettings))
+            {
+                MessageBox.Show("The \"local_creds.js\" file was not found in the \"js\" folder.\nOne will be created for you.\n\nPlease use the \"Connect to Twitch\" button to authenticate to allow you to select the Channel Point Reward and/or the chat command to use.");
+                freshCredsFile = true;
+            }
+
+
+            if (!revoke)
+            {
+                if (UserInfoObject.Name == "")
+                    errors += " - Username was blank. Please connect using the Twitch button.\n";
+                if (UserInfoObject.Redeem == "")
+                    errors += " - The Channel Point Redeem is not set. Please set this or make sure you have access to Twitch channel point rewards (Twitch Affiiate, etc.).";
+            }
+            else
+            {
+                UserInfoObject = new();
+            }
+
+            if (errors == "")
+            {
+                if (!fromExpiredToken)
+                {
+                    if (!UserInfoObject.RedeemEnabled && !UserInfoObject.TwitchCommandEnabled && !freshCredsFile)
+                        MessageBox.Show("You have not selected any way for your viewers to wish. Settings saved anyway.", "No option selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+                    errors = "User settings saved successfully!";
+                }
+                using StreamWriter writer = new(pathSettings);
+                writer.WriteLine("var channelName = \'" + UserInfoObject.Name + "\';");
+                writer.WriteLine("var channelID = \'" + UserInfoObject.ID + "\';");
+                writer.WriteLine("var localToken = \'" + UserInfoObject.Token.Replace("'", @"\'") + "\';");
+                writer.WriteLine("var redeemTitle = \'" + UserInfoObject.Redeem + "\';");
+                writer.WriteLine("var redeemEnabled = " + (UserInfoObject.RedeemEnabled ? "true" : "false") + ";");
+                writer.WriteLine("var twitchCommandPrefix = \'" + UserInfoObject.TwitchCommandPrefix.Replace("'", @"\'") + "\';");
+                writer.WriteLine("var twitchCommandEnabled = " + (UserInfoObject.TwitchCommandEnabled ? "true" : "false") + ";");
+                writer.WriteLine("var animation_duration = " + UserInfoObject.Duration + ";");
+            }
+            else
+            {
+                errors = "User Settings errors:\n" + errors;
+            }
+
+            return errors;
+        }
+        #endregion
+    }
+
+    public class DownloadProgress
+    {
+        public int FileCount { get; set; }
+        public int FilesDownloaded { get; set; }
+
+        public int Percent
+        {
+            get
+            {
+                if (FileCount == 0)
+                    return 0;
+
+                return (int)(FilesDownloaded * 100 / FileCount);
+            }
+        }
+    }
+
     public class Character
     {
         public string CharacterName { get; set; }
@@ -251,23 +966,11 @@ namespace GenshinImpact_WishOnStreamGUI
         bool _twitchCommandEnabled;
         string _broadcasterType;
         List<string> _rewards;
+
         public UserInfo()
         {
             _name = "";
             _id = "";
-            _token = "";
-            _redeem = "";
-            _redeemEnabled = false;
-            _duration = 8000;
-            _twitchCommandPrefix = "";
-            _twitchCommandEnabled = false;
-            _broadcasterType = "";
-            _rewards = [];
-        }
-        public UserInfo(string name, string id)
-        {
-            _name = name;
-            _id = id;
             _token = "";
             _redeem = "";
             _redeemEnabled = false;
@@ -287,6 +990,19 @@ namespace GenshinImpact_WishOnStreamGUI
         public string BroadcasterType { get => _broadcasterType; set => _broadcasterType = value; }
         public string Token { get => _token; set => _token = value; }
         public List<string> Rewards { get => _rewards; set => _rewards = value;  }
+        public void NewUser(string name, string id)
+        {
+            _name = name;
+            _id = id;
+            _token = "";
+            _redeem = "";
+            _redeemEnabled = false;
+            _duration = 8000;
+            _twitchCommandPrefix = "";
+            _twitchCommandEnabled = false;
+            _broadcasterType = "";
+            _rewards = [];
+        }
         public async Task<List<string>> GetCustomRewards()
         {
             List<string> rewards = [];
@@ -308,10 +1024,36 @@ namespace GenshinImpact_WishOnStreamGUI
             }
             else
             {
-                throw new Exception($"Unable to get Twitch rewards:\n{response.ReasonPhrase}");
+                string page = await response.Content.ReadAsStringAsync();
+                var data = JsonNode.Parse(page);
+                string error = (string)data["error"];
+                throw new Exception($"Unable to get Twitch rewards:\n{error}");
             }
 
+            Rewards = rewards;
             return rewards;
+        }
+
+        public void UpdateUserInfoFromAuthPayload(HttpServer.AuthPayload payload)
+        {
+            // fetch existing/old variables
+            bool _redeemEnabled = RedeemEnabled;
+            string _redeem = Redeem;
+            int _duration = Duration;
+            string _twitchCommandPrefix = TwitchCommandPrefix;
+            bool _twitchCommandEnabled = TwitchCommandEnabled;
+
+            // reset the user from the payload
+            NewUser(name: payload.ChannelName, id: payload.ChannelId);
+            Token = payload.Token;
+            Rewards = payload.Redeems;
+
+            // set the old variables back
+            Redeem = _redeem;
+            RedeemEnabled = _redeemEnabled;
+            Duration = _duration;
+            TwitchCommandPrefix = _twitchCommandPrefix;
+            TwitchCommandEnabled = _twitchCommandEnabled;
         }
     }
 
