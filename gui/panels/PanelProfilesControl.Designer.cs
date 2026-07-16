@@ -46,6 +46,7 @@
             this.lblActiveProfileText = new System.Windows.Forms.Label();
             this.lblSelectedProfile = new System.Windows.Forms.Label();
             this.lblSelectedProfileText = new System.Windows.Forms.Label();
+            this.btnDeleteProfile = new System.Windows.Forms.Button();
             this.panelNewProfile.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -101,14 +102,10 @@
             // 
             // lblDownloadImagesStatus
             // 
-            this.lblDownloadImagesStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblDownloadImagesStatus.AutoSize = true;
             this.lblDownloadImagesStatus.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.lblDownloadImagesStatus.Location = new System.Drawing.Point(327, 296);
+            this.lblDownloadImagesStatus.Location = new System.Drawing.Point(301, 296);
             this.lblDownloadImagesStatus.Name = "lblDownloadImagesStatus";
-            this.lblDownloadImagesStatus.Size = new System.Drawing.Size(87, 13);
+            this.lblDownloadImagesStatus.Size = new System.Drawing.Size(139, 13);
             this.lblDownloadImagesStatus.TabIndex = 73;
             this.lblDownloadImagesStatus.Text = "Downloading...";
             this.lblDownloadImagesStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -242,6 +239,17 @@
             this.lblSelectedProfileText.Text = "selectedProfile";
             this.lblSelectedProfileText.Visible = false;
             // 
+            // btnDeleteProfile
+            // 
+            this.btnDeleteProfile.Font = new System.Drawing.Font("Segoe UI Symbol", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnDeleteProfile.Location = new System.Drawing.Point(446, 99);
+            this.btnDeleteProfile.Name = "btnDeleteProfile";
+            this.btnDeleteProfile.Size = new System.Drawing.Size(108, 27);
+            this.btnDeleteProfile.TabIndex = 82;
+            this.btnDeleteProfile.Text = "Delete Profile";
+            this.btnDeleteProfile.UseVisualStyleBackColor = true;
+            this.btnDeleteProfile.Click += new System.EventHandler(this.btnDeleteProfile_Click);
+            // 
             // PanelProfilesControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -250,6 +258,7 @@
             this.AutoSize = true;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BackColor = System.Drawing.SystemColors.Control;
+            this.Controls.Add(this.btnDeleteProfile);
             this.Controls.Add(this.panelNewProfile);
             this.Controls.Add(this.lblSelectedProfileText);
             this.Controls.Add(this.lblSelectedProfile);
@@ -295,5 +304,6 @@
         private System.Windows.Forms.Label lblActiveProfileText;
         private System.Windows.Forms.Label lblSelectedProfile;
         private System.Windows.Forms.Label lblSelectedProfileText;
+        private System.Windows.Forms.Button btnDeleteProfile;
     }
 }

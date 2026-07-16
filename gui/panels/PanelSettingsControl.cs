@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Remoting.Messaging;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -13,7 +10,7 @@ namespace GenshinImpact_WishOnStreamGUI
         static readonly string authUrl = "https://genshin-twitch.sidestreamnetwork.net/auth";
         public UserInfo userInfoTransit;
         public Func<Task<List<string>>> GetCustomRewards;
-        public Action<UserInfo> SaveUserSettingsToFile;
+        public Action<UserInfo, bool, bool> SaveUserSettingsToFile;
         private bool _pendingChanges;
         public event EventHandler PendingChangesChanged;
         public bool PendingChanges
@@ -142,6 +139,9 @@ namespace GenshinImpact_WishOnStreamGUI
                 Invoke(() => ResetUser(fromExpiredToken));
                 return;
             }
+            SaveUserSettings(revoke: true, fromExpiredToken);
+
+            // manually reset the controls, because
             imgTwitchConnect.Visible = true;
             btnCopyAuthLink.Visible = true;
             btnRevokeToken.Enabled = false;
@@ -151,12 +151,14 @@ namespace GenshinImpact_WishOnStreamGUI
             txtCommand.Text = "";
             txtCommand.Enabled = false;
             cmbRedeems.Items.Clear();
+            cmbRedeems.Enabled = false;
+            txtDuration.Text = "8000";
         }
 
-        public void SaveUserSettings(UserInfo userInfo, bool revoke = false, bool fromExpiredToken = false)
+        public void SaveUserSettings(bool revoke = false, bool fromExpiredToken = false)
         {
             ExtractUserInfo();
-            SaveUserSettingsToFile.Invoke(userInfo);
+            SaveUserSettingsToFile.Invoke(userInfoTransit, revoke, fromExpiredToken);
         }
 
         public void ShowExpiredNotice(string message)
@@ -203,7 +205,7 @@ namespace GenshinImpact_WishOnStreamGUI
                 chkCommand.Checked = false;
             }
 
-            SaveUserSettings(userInfoTransit);
+            SaveUserSettings();
             PendingChanges = false;
             MessageBox.Show(message, "User settings saved", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }

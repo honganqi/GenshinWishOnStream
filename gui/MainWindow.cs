@@ -108,7 +108,7 @@ namespace GenshinImpact_WishOnStreamGUI
 
             // action delegates
             #region Profile Delegates
-            panelProfilesControl.SaveProfileToFile = async profile => SaveProfile(profile);
+            panelProfilesControl.SaveProfileToFile = async (newProfile, sourceProfile) => SaveProfile(newProfile, sourceProfile);
 
             panelProfilesControl.ResetDownloadConfigs = async fileList =>
             {
@@ -128,7 +128,7 @@ namespace GenshinImpact_WishOnStreamGUI
             {
                 try
                 {
-                    (List<string> paths, long totalSize) = await _library.DownloadDefaultImages_Prefetch();
+                    List<string> paths = await _library.DownloadDefaultImages_Prefetch(true);
                     panelProfilesControl.SetDownloadStatus(true);
                     var progress = new Progress<DownloadProgress>(p =>
                     {
@@ -143,18 +143,12 @@ namespace GenshinImpact_WishOnStreamGUI
                 catch (Exception)
                 {
                     // exit/cancel download
-                    //MessageBox.Show("Cancelled download", "Download cancelled", MessageBoxButtons.OK, MessageBoxIcon.Info);
+                    //MessageBox.Show("Cancelled download", "Download cancelled", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 finally
                 {
                     panelProfilesControl.SetDownloadStatus(false);
                 }
-            };
-
-            panelProfilesControl.SaveAsNewProfile = (sourceProfile, newProfile) =>
-            {
-                // TO-DO: before copying, check if there are unsaved changes and ask
-                _library.CopyProfile(sourceProfile, newProfile);
             };
 
             panelProfilesControl.ChangeProfile = profile =>
@@ -183,15 +177,42 @@ namespace GenshinImpact_WishOnStreamGUI
                 return activateSuccess;
             };
 
-            panelProfilesControl.UpdateProfileList = () =>
+            panelProfilesControl.DeleteProfile = async profile =>
             {
-                string[] profiles = _library.CheckProfiles();
-                panelProfilesControl.PopulateProfiles(profiles, activeProfile);
-                panelProfilesTopBarControl.PopulateProfiles(profiles, activeProfile);
+                try
+                {
+                    await _library.DeleteProfile(profile);
+                    bool filesAreValid = ChangeProfile("default");
+                    panelProfilesControl.SetSelectedProfile("default");
+                    ActivateProfile("default");
+                    UpdateProfileList();
+                    MessageBox.Show($"The \"{profile}\" profile has been successfully deleted.", "Profile deleted", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Delete failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
             };
+
+            panelProfilesControl.UpdateProfileList = () => UpdateProfileList();
             #endregion
 
             #region Settings Delegates
+            _library.HttpServerObject.AuthCompleted += async payload =>
+            {
+                BeginInvoke(async () =>
+                {
+                    await _library.HandleAuthSync(payload);
+
+                    panelSettingsControl.userInfoTransit = _library.UserInfoObject;
+                    await panelSettingsControl.UpdateSettingsRewards();
+                    await panelSettingsControl.PopulateUserInfo(true);
+                });
+            };
+
+            _library.HttpServerObject.RewriteLocalCreds += payload => _library.RewriteLocalCreds(payload);
+
             panelSettingsControl.GetCustomRewards = async () =>
             {
                 List<string> rewards = new();
@@ -212,10 +233,10 @@ namespace GenshinImpact_WishOnStreamGUI
                 return rewards;
             };
 
-            panelSettingsControl.SaveUserSettingsToFile = async userInfo =>
+            panelSettingsControl.SaveUserSettingsToFile = async (userInfo, revoke, fromExpiredToken) =>
             {
                 _library.UserInfoObject = userInfo;
-                _library.SaveUserSettingsToFile();
+                _library.SaveUserSettingsToFile(revoke, fromExpiredToken);
             };
 
             _library.UpdateSettingsPanelWithUserInfo += async userInfo =>
@@ -278,17 +299,24 @@ namespace GenshinImpact_WishOnStreamGUI
             return activateSuccess;
         }
 
+        private void UpdateProfileList()
+        {
+            string[] profiles = _library.CheckProfiles();
+            panelProfilesControl.PopulateProfiles(profiles, activeProfile);
+            panelProfilesTopBarControl.PopulateProfiles(profiles, activeProfile);
+        }
+
 
 
         #region File Read-Write
-        void SaveProfile(string profile)
+        void SaveProfile(string profile, string sourceProfileofImages = "")
         {
             // TO-DO: check if saving active or selected/editing profile
             StarList starList = panelCharactersControl.ExtractDataFromCharactersPanel();
             List<string> dullBlades = panelDullBladesControl.ExtractDataFromDullBladesPanel();
             _library.StarListObject = starList;
             _library.DullBlades = dullBlades;
-            _library.SaveProfile(profile);
+            _library.SaveProfile(profile, sourceProfileofImages);
         }
         #endregion
 
@@ -313,7 +341,6 @@ namespace GenshinImpact_WishOnStreamGUI
 
                     if ((queryResult != null) && (queryResult.ReleaseDate != null))
                     {
-                        queryResult.ReleaseDate = "2026-04-26T09:37:00";
                         DateTime releaseDate = DateTime.Parse(queryResult.ReleaseDate).ToUniversalTime();
                         string onlineVerString = queryResult.Version;
                         string currentVerString = Application.ProductVersion;
@@ -409,26 +436,44 @@ namespace GenshinImpact_WishOnStreamGUI
 
                 Environment.Exit(0);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine(ex.Message);
                 MessageBox.Show("Unable to download the latest version.", "Download error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private async void btnGetLatestChoices_Click(object sender, EventArgs e)
+        private async void btnGetLatestCharacterList_Click(object sender, EventArgs e)
         {
             List<string> fileList = ["choices.js"];
             try
             {
+                List<string> downloadList = await _library.DownloadDefaultImages_Prefetch(false);
+                if (downloadList.Count > 0)
+                {
+                    DialogResult ask = MessageBox.Show(
+                        $"{downloadList.Count} new images found.\n\n" +
+                        $"Do you want to download the images along with the default profile configs?\n\n" + 
+                        $"Yes: Configs and images\n" + 
+                        $"No: Configs only\n" +
+                        $"Cancel: Don't download anything",
+                        "Confirm download",
+                        MessageBoxButtons.YesNoCancel,
+                        MessageBoxIcon.Question
+                        );
+                    if (ask == DialogResult.Yes)
+                        await _library.DownloadDefaultImages(downloadList);
+                    if (ask == DialogResult.Cancel)
+                        throw new Exception("cancelled");
+                }
                 await _library.DownloadDefaultConfigs(fileList);
                 MessageBox.Show("Default profile updated successfully!", "Downloaded Default Profile", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                lblLatestChoices.Hide();
-                btnGetLatestChoices.Hide();
+                lblLatestCharacterList.Hide();
+                btnGetLatestCharacterList.Hide();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Download error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (ex.Message != "cancelled")
+                    MessageBox.Show(ex.Message, "Download error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             
         }
@@ -438,7 +483,10 @@ namespace GenshinImpact_WishOnStreamGUI
         #region Form Controls
         private void MainWindow_FormClosing(object sender, FormClosingEventArgs e)
         {
-            DialogResult exitAsk = MessageBox.Show("You sure?", "Exit", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            string additionalQuestion = "";
+            if (panelProfilesControl.selectedProfile != activeProfile)
+                additionalQuestion = "\n\nReminder: The selected profile is not the active one.";
+            DialogResult exitAsk = MessageBox.Show($"You sure? {additionalQuestion}", "Exit", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (exitAsk == DialogResult.Yes)
             {
                 _library.HttpServerObject.Stop();
@@ -450,52 +498,56 @@ namespace GenshinImpact_WishOnStreamGUI
 
         private async void MainWindow_Load(object sender, EventArgs e)
         {
-            _library.HttpServerObject.AuthCompleted += async payload =>
-            {
-                BeginInvoke(async () =>
-                {
-                    await _library.HandleAuthSync(payload);
-
-                    panelSettingsControl.userInfoTransit = _library.UserInfoObject;
-                    await panelSettingsControl.UpdateSettingsRewards();
-                    await panelSettingsControl.PopulateUserInfo(true);
-                });
-            };
-
             // get profile directories and populate "profiles" combobox
             string[] profiles = _library.CheckProfiles();
             panelProfilesTopBarControl.PopulateProfiles(profiles, activeProfile);
             panelProfilesControl.PopulateProfiles(profiles, activeProfile);
-            panelCharactersControl.InitializeCharactersPanel(_library.StarListObject);
-            panelDullBladesControl.InitializeDullBladesPanel(_library.DullBlades);
 
             await _library.ValidateUserSettingsFromFiles();
-            panelSettingsControl.userInfoTransit = _library.UserInfoObject;
-
-            bool tokenIsStillValid = false;
-            try
+            if (_library.UserInfoObject.Name != "")
             {
-                List<string> rewards = await panelSettingsControl.UpdateSettingsRewards();
-                SwitchPanel(panelCharacters);
-                tokenIsStillValid = true;
-            }
-            catch (UnauthorizedAccessException)
+                panelSettingsControl.userInfoTransit = _library.UserInfoObject;
+
+                bool tokenIsStillValid = false;
+                try
+                {
+                    List<string> rewards = await panelSettingsControl.UpdateSettingsRewards();
+                    SwitchPanel(panelCharacters);
+                    tokenIsStillValid = true;
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    SwitchPanel(panelSettings);
+                }
+                await panelSettingsControl.PopulateUserInfo(tokenIsStillValid);
+            } else
             {
                 SwitchPanel(panelSettings);
             }
-            await panelSettingsControl.PopulateUserInfo(tokenIsStillValid);
-
 
             _library.HttpServerObject.Start();
 
             // check for GUI app updates
             await CheckUpdate(updateurl);
             int characterListVersion = _library.GetDefaultCharacterListVersion();
-            (bool httpOk, int latestCharacterListVersion) = await _library.CheckCharacterListUpdate();
-            if (characterListVersion < latestCharacterListVersion)
+            try
             {
-                lblLatestChoices.Visible = true;
-                btnGetLatestChoices.Show();
+                (bool httpOk, int latestCharacterListVersion) = await _library.CheckCharacterListUpdate();
+
+                // if header version number is missing, characterListVersion == 0 
+                if (characterListVersion < latestCharacterListVersion || characterListVersion == 0)
+                {
+                    lblLatestCharacterList.Visible = true;
+                    btnGetLatestCharacterList.Show();
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
 
@@ -544,7 +596,7 @@ namespace GenshinImpact_WishOnStreamGUI
             }
         }
 
-        private async void btnSave_Click(object sender, EventArgs e) => SaveProfile(activeProfile);
+        private async void btnSave_Click(object sender, EventArgs e) => SaveProfile(panelProfilesControl.selectedProfile);
 
         protected override void WndProc(ref Message m)
         {

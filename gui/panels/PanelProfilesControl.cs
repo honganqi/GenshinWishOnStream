@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -13,12 +12,12 @@ namespace GenshinImpact_WishOnStreamGUI
         public string activeProfile;
         public string selectedProfile;
 
-        public Action<string> SaveProfileToFile;
-        public Action<string, string> SaveAsNewProfile;
+        public Action<string, string> SaveProfileToFile;
         public Func<string, bool> ActivateProfile;
         public Func<List<string>, Task<bool>> ResetDownloadConfigs;
         public Action DownloadDefaultImages_Ask;
         public Func<string, bool> ChangeProfile;
+        public Action<string> DeleteProfile;
         public Action UpdateProfileList;
 
         public PanelProfilesControl()
@@ -154,7 +153,7 @@ namespace GenshinImpact_WishOnStreamGUI
         private void btnProfileCreateSave_Click(object sender, EventArgs e)
         {
             // TO-DO: sanitize new name
-            SaveProfileToFile.Invoke(txtNewProfile.Text);
+            SaveProfileToFile.Invoke(txtNewProfile.Text, selectedProfile);
             panelNewProfile.Hide();
             txtNewProfile.Text = "";
             UpdateProfileList.Invoke();
@@ -173,5 +172,18 @@ namespace GenshinImpact_WishOnStreamGUI
         }
         #endregion
 
+        private void btnDeleteProfile_Click(object sender, EventArgs e)
+        {
+            if (selectedProfile == "default")
+            {
+                MessageBox.Show("Please do not delete the default profile.", "Default profile", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            DialogResult deleteAsk = MessageBox.Show("Are you sure you want to delete this profile?", "Confirm delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (deleteAsk != DialogResult.Yes)
+                return;
+
+            DeleteProfile.Invoke(cmbProfiles.Text);
+        }
     }
 }

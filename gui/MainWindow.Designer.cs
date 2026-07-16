@@ -38,8 +38,8 @@ namespace GenshinImpact_WishOnStreamGUI
             this.imgTwitch = new System.Windows.Forms.PictureBox();
             this.panelSocials = new System.Windows.Forms.Panel();
             this.label2 = new System.Windows.Forms.Label();
-            this.btnGetLatestChoices = new System.Windows.Forms.Button();
-            this.lblLatestChoices = new System.Windows.Forms.Label();
+            this.btnGetLatestCharacterList = new System.Windows.Forms.Button();
+            this.lblLatestCharacterList = new System.Windows.Forms.Label();
             this.btnPanelSettings = new System.Windows.Forms.Button();
             this.btnSaveProfile = new System.Windows.Forms.Button();
             this.btnProfiles = new System.Windows.Forms.Button();
@@ -53,9 +53,6 @@ namespace GenshinImpact_WishOnStreamGUI
             this.btnMaximize = new System.Windows.Forms.Button();
             this.panelLeft = new System.Windows.Forms.Panel();
             this.panelCharacters = new System.Windows.Forms.Panel();
-            this.btnSortCharacters = new System.Windows.Forms.Button();
-            this.btnAddStarValue = new System.Windows.Forms.Button();
-            this.labelTitleCharacters = new System.Windows.Forms.Label();
             this.panelSettings = new System.Windows.Forms.Panel();
             this.panelDullBlades = new System.Windows.Forms.Panel();
             this.panelProfiles = new System.Windows.Forms.Panel();
@@ -67,7 +64,6 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelSocials.SuspendLayout();
             this.panelTop.SuspendLayout();
             this.panelLeft.SuspendLayout();
-            this.panelCharacters.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnUpdateNotif
@@ -153,8 +149,8 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelSocials.Controls.Add(this.imgYoutube);
             this.panelSocials.Controls.Add(this.label1);
             this.panelSocials.Controls.Add(this.imgTwitch);
-            this.panelSocials.Controls.Add(this.btnGetLatestChoices);
-            this.panelSocials.Controls.Add(this.lblLatestChoices);
+            this.panelSocials.Controls.Add(this.btnGetLatestCharacterList);
+            this.panelSocials.Controls.Add(this.lblLatestCharacterList);
             this.panelSocials.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.panelSocials.Location = new System.Drawing.Point(110, 532);
             this.panelSocials.Name = "panelSocials";
@@ -176,31 +172,31 @@ namespace GenshinImpact_WishOnStreamGUI
             // 
             // btnGetLatestChoices
             // 
-            this.btnGetLatestChoices.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnGetLatestChoices.AutoSize = true;
-            this.btnGetLatestChoices.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
-            this.btnGetLatestChoices.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnGetLatestChoices.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.btnGetLatestChoices.Location = new System.Drawing.Point(526, 33);
-            this.btnGetLatestChoices.Name = "btnGetLatestChoices";
-            this.btnGetLatestChoices.Size = new System.Drawing.Size(170, 25);
-            this.btnGetLatestChoices.TabIndex = 64;
-            this.btnGetLatestChoices.Text = "Update Default Character List";
-            this.btnGetLatestChoices.UseVisualStyleBackColor = false;
-            this.btnGetLatestChoices.Visible = false;
-            this.btnGetLatestChoices.Click += new System.EventHandler(this.btnGetLatestChoices_Click);
+            this.btnGetLatestCharacterList.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnGetLatestCharacterList.AutoSize = true;
+            this.btnGetLatestCharacterList.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
+            this.btnGetLatestCharacterList.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnGetLatestCharacterList.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.btnGetLatestCharacterList.Location = new System.Drawing.Point(526, 33);
+            this.btnGetLatestCharacterList.Name = "btnGetLatestChoices";
+            this.btnGetLatestCharacterList.Size = new System.Drawing.Size(170, 25);
+            this.btnGetLatestCharacterList.TabIndex = 64;
+            this.btnGetLatestCharacterList.Text = "Update Default Character List";
+            this.btnGetLatestCharacterList.UseVisualStyleBackColor = false;
+            this.btnGetLatestCharacterList.Visible = false;
+            this.btnGetLatestCharacterList.Click += new System.EventHandler(this.btnGetLatestCharacterList_Click);
             // 
             // lblLatestChoices
             // 
-            this.lblLatestChoices.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblLatestChoices.AutoSize = true;
-            this.lblLatestChoices.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.lblLatestChoices.Location = new System.Drawing.Point(581, 17);
-            this.lblLatestChoices.Name = "lblLatestChoices";
-            this.lblLatestChoices.Size = new System.Drawing.Size(118, 13);
-            this.lblLatestChoices.TabIndex = 65;
-            this.lblLatestChoices.Text = "Updated list available";
-            this.lblLatestChoices.Visible = false;
+            this.lblLatestCharacterList.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblLatestCharacterList.AutoSize = true;
+            this.lblLatestCharacterList.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.lblLatestCharacterList.Location = new System.Drawing.Point(581, 17);
+            this.lblLatestCharacterList.Name = "lblLatestChoices";
+            this.lblLatestCharacterList.Size = new System.Drawing.Size(118, 13);
+            this.lblLatestCharacterList.TabIndex = 65;
+            this.lblLatestCharacterList.Text = "Updated list available";
+            this.lblLatestCharacterList.Visible = false;
             // 
             // btnPanelSettings
             // 
@@ -210,7 +206,7 @@ namespace GenshinImpact_WishOnStreamGUI
             this.btnPanelSettings.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnPanelSettings.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnPanelSettings.ForeColor = System.Drawing.Color.White;
-            this.btnPanelSettings.Location = new System.Drawing.Point(10, 450);
+            this.btnPanelSettings.Location = new System.Drawing.Point(10, 500);
             this.btnPanelSettings.Margin = new System.Windows.Forms.Padding(0);
             this.btnPanelSettings.Name = "btnPanelSettings";
             this.btnPanelSettings.Size = new System.Drawing.Size(90, 90);
@@ -228,7 +224,7 @@ namespace GenshinImpact_WishOnStreamGUI
             this.btnSaveProfile.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSaveProfile.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnSaveProfile.ForeColor = System.Drawing.Color.White;
-            this.btnSaveProfile.Location = new System.Drawing.Point(10, 230);
+            this.btnSaveProfile.Location = new System.Drawing.Point(10, 280);
             this.btnSaveProfile.Margin = new System.Windows.Forms.Padding(0);
             this.btnSaveProfile.Name = "btnSaveProfile";
             this.btnSaveProfile.Size = new System.Drawing.Size(90, 90);
@@ -246,7 +242,7 @@ namespace GenshinImpact_WishOnStreamGUI
             this.btnProfiles.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnProfiles.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnProfiles.ForeColor = System.Drawing.Color.White;
-            this.btnProfiles.Location = new System.Drawing.Point(10, 340);
+            this.btnProfiles.Location = new System.Drawing.Point(10, 390);
             this.btnProfiles.Margin = new System.Windows.Forms.Padding(0);
             this.btnProfiles.Name = "btnProfiles";
             this.btnProfiles.Size = new System.Drawing.Size(90, 90);
@@ -414,42 +410,15 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelCharacters.AutoScroll = true;
             this.panelCharacters.AutoSize = true;
             this.panelCharacters.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.panelCharacters.Controls.Add(this.btnSortCharacters);
-            this.panelCharacters.Controls.Add(this.btnAddStarValue);
-            this.panelCharacters.Controls.Add(this.labelTitleCharacters);
             this.panelCharacters.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelCharacters.Location = new System.Drawing.Point(110, 36);
+            this.panelCharacters.Location = new System.Drawing.Point(110, 78);
             this.panelCharacters.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.panelCharacters.Name = "panelCharacters";
-            this.panelCharacters.Size = new System.Drawing.Size(854, 496);
+            this.panelCharacters.Size = new System.Drawing.Size(854, 454);
             this.panelCharacters.TabIndex = 80;
             this.panelCharacters.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Form_MouseDown);
             this.panelCharacters.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Form_MouseMove);
             this.panelCharacters.MouseUp += new System.Windows.Forms.MouseEventHandler(this.Form_MouseUp);
-            // 
-            // btnSortCharacters
-            // 
-            this.btnSortCharacters.Location = new System.Drawing.Point(0, 0);
-            this.btnSortCharacters.Name = "btnSortCharacters";
-            this.btnSortCharacters.Size = new System.Drawing.Size(75, 23);
-            this.btnSortCharacters.TabIndex = 0;
-            // 
-            // btnAddStarValue
-            // 
-            this.btnAddStarValue.Location = new System.Drawing.Point(0, 0);
-            this.btnAddStarValue.Name = "btnAddStarValue";
-            this.btnAddStarValue.Size = new System.Drawing.Size(75, 23);
-            this.btnAddStarValue.TabIndex = 99;
-            // 
-            // labelTitleCharacters
-            // 
-            this.labelTitleCharacters.AutoSize = true;
-            this.labelTitleCharacters.Font = new System.Drawing.Font("Segoe UI", 20.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelTitleCharacters.Location = new System.Drawing.Point(12, 9);
-            this.labelTitleCharacters.Name = "labelTitleCharacters";
-            this.labelTitleCharacters.Size = new System.Drawing.Size(153, 37);
-            this.labelTitleCharacters.TabIndex = 13;
-            this.labelTitleCharacters.Text = "Characters";
             // 
             // panelSettings
             // 
@@ -500,8 +469,8 @@ namespace GenshinImpact_WishOnStreamGUI
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(964, 607);
-            this.Controls.Add(this.panelProfilesTop);
             this.Controls.Add(this.panelCharacters);
+            this.Controls.Add(this.panelProfilesTop);
             this.Controls.Add(this.panelSocials);
             this.Controls.Add(this.panelTop);
             this.Controls.Add(this.panelLeft);
@@ -528,8 +497,6 @@ namespace GenshinImpact_WishOnStreamGUI
             this.panelTop.ResumeLayout(false);
             this.panelTop.PerformLayout();
             this.panelLeft.ResumeLayout(false);
-            this.panelCharacters.ResumeLayout(false);
-            this.panelCharacters.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -558,13 +525,10 @@ namespace GenshinImpact_WishOnStreamGUI
         private System.Windows.Forms.Panel panelCharacters;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button btnMaximize;
-        private System.Windows.Forms.Button btnAddStarValue;
-        private System.Windows.Forms.Label labelTitleCharacters;
-        private System.Windows.Forms.Button btnSortCharacters;
         private System.Windows.Forms.Panel panelSettings;
         private System.Windows.Forms.Panel panelDullBlades;
-        private System.Windows.Forms.Button btnGetLatestChoices;
-        private System.Windows.Forms.Label lblLatestChoices;
+        private System.Windows.Forms.Button btnGetLatestCharacterList;
+        private System.Windows.Forms.Label lblLatestCharacterList;
         private System.Windows.Forms.Panel panelProfiles;
         private System.Windows.Forms.Panel panelProfilesTop;
     }

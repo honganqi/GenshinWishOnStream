@@ -1,5 +1,4 @@
 ﻿using System;
-using GenshinImpact_WishOnStreamGUI.panels;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -24,26 +23,38 @@ namespace GenshinImpact_WishOnStreamGUI
         List<string> DullBlades { get; set; }
         UserInfo UserInfoObject { get; set; }
         HttpServer HttpServerObject { get; set; }
+
+        // Authentication
+        Task HandleAuthSync(HttpServer.AuthPayload payload);
+
+        // Profiles
+        void SaveProfile(string selectedProfile, string sourceProfileOfImages);
+        Task DeleteProfile(string selectedProfile);
         string[] CheckProfiles();
-        void SaveProfile(string selectedProfile);
-        void CopyProfile(string sourceProfile, string newProfile);
+        bool ActivateProfile(string selectedProfile);
+
+        // Pull Settings
+        bool ValidateOrRepairPullSettings(string selectedProfile);
+
+        // Configs
         int GetDefaultCharacterListVersion();
         Task<(bool httpOk, int latestCharacterListVersion)> CheckCharacterListUpdate();
-        bool ValidateOrRepairPullSettings(string selectedProfile);
-        bool ActivateProfile(string selectedProfile);
         Task<bool> DownloadDefaultConfigs(List<string> items);
-        Task HandleAuthSync(HttpServer.AuthPayload payload);
-        Task ValidateUserSettingsFromFiles();
-        string SaveUserSettingsToFile(bool revoke = false, bool fromExpiredToken = false);
-        event Action<UserInfo> UpdateSettingsPanelWithUserInfo;
-        Task<(List<string>, long)> DownloadDefaultImages_Prefetch();
+        Task<List<string>> DownloadDefaultImages_Prefetch(bool fullDownload = true);
         Task<bool> DownloadDefaultImages(List<string> paths, IProgress<DownloadProgress> progress = null);
+
+        // User Info
+        Task ValidateUserSettingsFromFiles();
+        void SaveUserSettingsToFile(bool revoke = false, bool fromExpiredToken = false);
+        event Action<UserInfo> UpdateSettingsPanelWithUserInfo;
+        void RewriteLocalCreds(HttpServer.AuthPayload payload);
     }
 
     public class Library : ILibraryService
     {
-        readonly string jsPath = Path.Combine(Application.StartupPath, "js");
-        readonly string imgPath = Path.Combine(Application.StartupPath, "img");
+        static string profilesPath = Path.Combine(Application.StartupPath, "profiles");
+        static string jsPath = Path.Combine(Application.StartupPath, "js");
+        static string imgPath = Path.Combine(Application.StartupPath, "img");
 
         public StarList StarListObject { get; set; } = new();
         public List<string> DullBlades { get; set; } = new();
@@ -69,19 +80,19 @@ namespace GenshinImpact_WishOnStreamGUI
         #endregion
 
         #region Profiles
-        public void SaveProfile(string selectedProfile)
+        public void SaveProfile(string selectedProfile, string sourceProfileOfImages = "")
         {
             // create directory if it doesn't exist
-            string profilePath = Path.Combine(jsPath, "profiles", selectedProfile);
-            if (Directory.Exists(profilePath))
+            string profileJsPath = GetProfilePath(selectedProfile, "js");
+            if (Directory.Exists(profileJsPath))
             {
                 DialogResult exitAsk = MessageBox.Show("This will overwrite the profile. Are you sure?", "Confirm overwrite", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (exitAsk != DialogResult.Yes)
                     return;
             }
-            Directory.CreateDirectory(profilePath);
-            string pathChoices = Path.Combine(profilePath, "choices.js");
-            string pathRates = Path.Combine(profilePath, "rates.js");
+            Directory.CreateDirectory(profileJsPath);
+            string pathChoices = Path.Combine(profileJsPath, "choices.js");
+            string pathRates = Path.Combine(profileJsPath, "rates.js");
 
             List<string> messages = new();
 
@@ -139,7 +150,7 @@ namespace GenshinImpact_WishOnStreamGUI
                         writer.WriteLine("rates[" + starValue + "] = " + rate + ";");
                     }
 
-                    messages.Add("Pull settings saved successfully!");
+                    messages.Add("Profile saved successfully!");
                 }
                 else
                 {
@@ -151,29 +162,49 @@ namespace GenshinImpact_WishOnStreamGUI
                 messages.Add("There was an error in the Character table data.");
             }
 
+            if (sourceProfileOfImages != "")
+            {
+                // create directory if it doesn't exist
+                string sourceDir = GetProfilePath(sourceProfileOfImages, "img");
+                DirectoryInfo imgDir = new(sourceDir);
+
+                string profileImgPath = GetProfilePath(selectedProfile, "img");
+                Directory.CreateDirectory(profileImgPath);
+
+                foreach (FileInfo file in imgDir.EnumerateFiles("*", SearchOption.AllDirectories))
+                {
+                    string fileToCopy = file.FullName.Substring(imgDir.FullName.Length + 1);
+                    string relativePath = Path.GetDirectoryName(fileToCopy);
+                    Directory.CreateDirectory(Path.Combine(profileImgPath, relativePath));
+                    file.CopyTo(Path.Combine(profileImgPath, fileToCopy), true);
+                }
+
+            }
+
             if (messages.Count > 0)
                 MessageBox.Show(string.Join("\n\n", messages), "Save status", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        public void CopyProfile(string sourceProfile, string newProfile)
+        public async Task DeleteProfile(string selectedProfile)
         {
-            string sourceProfilePath = Path.Combine(jsPath, "profiles", sourceProfile);
-            string newProfilePath = Path.Combine(jsPath, "profiles", newProfile);
-            if (Directory.Exists(newProfilePath))
+            try
             {
-                DialogResult exitAsk = MessageBox.Show("It looks like the profile already exists. This will overwrite the profile. Are you sure?", "Confirm overwrite", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                if (exitAsk != DialogResult.Yes)
-                    return;
+                string profilePath = Path.Combine(profilesPath, selectedProfile);
+                if (Directory.Exists(profilePath))
+                {
+                    Directory.Delete(profilePath, true);
+                }
             }
-            Directory.CreateDirectory(newProfilePath);
-            File.Copy(Path.Combine(sourceProfilePath, "choices.js"), Path.Combine(newProfilePath, "choices.js"), true);
-            File.Copy(Path.Combine(sourceProfilePath, "rates.js"), Path.Combine(newProfilePath, "rates.js"), true);
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public string[] CheckProfiles()
         {
             // get profile directories and populate "profiles" combobox
-            string[] profiles = Directory.GetDirectories(Path.Combine(jsPath, "profiles"))
+            string[] profiles = Directory.GetDirectories(profilesPath)
                     .Select(Path.GetFileName)
                     .ToArray();
 
@@ -185,99 +216,58 @@ namespace GenshinImpact_WishOnStreamGUI
             // save profile before?
             if (ReadPullSettingsFromFile(selectedProfile))
             {
-                string sourceProfilePath = Path.Combine(jsPath, "profiles", selectedProfile);
-                string activeProfilePath = Path.Combine(jsPath);
-                List<string> filesToCopy = new()
+                string sourceJsPath = GetProfilePath(selectedProfile, "js");
+                string sourceImgPath = GetProfilePath(selectedProfile, "img");
+
+                DirectoryInfo jsDir = new(sourceJsPath);
+                DirectoryInfo imgDir = new(sourceImgPath);
+                DirectoryInfo activeImgDir = new(imgPath);
+
+                foreach (FileInfo file in jsDir.EnumerateFiles("*", SearchOption.AllDirectories))
                 {
-                    "rates.js",
-                    "choices.js",
-                };
-                foreach (string file in filesToCopy)
-                    File.Copy(Path.Combine(sourceProfilePath, file), Path.Combine(activeProfilePath, file), true);
+                    string fileToCopy = file.FullName.Substring(jsDir.FullName.Length + 1);
+                    file.CopyTo(Path.Combine(jsPath, fileToCopy), true);
+                }
+
+                // 1. Delete all files in the root of this directory
+                foreach (FileInfo file in activeImgDir.EnumerateFiles())
+                {
+                    file.Delete();
+                }
+
+                // 2. Delete all subdirectories and their contents recursively
+                foreach (DirectoryInfo dir in activeImgDir.EnumerateDirectories())
+                {
+                    dir.Delete(true);
+                }
+
+                foreach (FileInfo file in imgDir.EnumerateFiles("*", SearchOption.AllDirectories))
+                {
+                    string fileToCopy = file.FullName.Substring(imgDir.FullName.Length + 1);
+                    string dir = Path.GetDirectoryName(file.FullName)
+                                    .Replace(sourceImgPath, "")
+                                    .TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                                    .Replace('\\', '/');
+                    Directory.CreateDirectory(Path.Combine(imgPath, dir));
+                    file.CopyTo(Path.Combine(imgPath, fileToCopy), true);
+                }
 
                 return true;
             }
             return false;
         }
 
-
+        private string GetProfilePath(string selectedProfile, string dir)
+        {
+            string path = Path.Combine(profilesPath, selectedProfile, dir);
+            return path;
+        }
         #endregion
 
-        public int GetDefaultCharacterListVersion()
-        {
-            int currentVersion = 0;
-            // copy local config from "defaults" directory if it exists
-            string defaultConfigToCopy = Path.Combine(jsPath, "profiles", "default", "choices.js");
-
-            using (StreamReader reader = new(defaultConfigToCopy))
-            {
-                string firstLine = reader.ReadLine();
-                if (firstLine.StartsWith("// version:"))
-                {
-                    int.TryParse(firstLine.Replace("// version: ", ""), out currentVersion);
-                }
-            }
-            return currentVersion;
-        }
-
-        public async Task<(bool httpOk, int latestCharacterListVersion)> CheckCharacterListUpdate()
-        {
-            string choicesUrl = "https://raw.githubusercontent.com/honganqi/GenshinWishOnStream/main/browser_source/js/profiles/default/choices.js";
-
-            var request = Interwebs.httpClient.GetAsync(choicesUrl);
-
-            Task timeout = Task.Delay(3000);
-            await Task.WhenAny(timeout, request);
-
-            try
-            {
-                System.Net.Http.HttpResponseMessage response = request.Result;
-                if (response.IsSuccessStatusCode)
-                {
-                    var page = response.Content.ReadAsStringAsync();
-                    using var reader = new StringReader(page.Result);
-                    string choicesVersion = reader.ReadLine();
-                    if (choicesVersion.StartsWith("// version:"))
-                    {
-                        if (int.TryParse(choicesVersion.Replace("// version: ", ""), out int latestCharacterListVersion))
-                        {
-                            return (true, latestCharacterListVersion);
-                        }
-                    }
-                }
-                else
-                {
-                    switch (response.StatusCode)
-                    {
-                        case HttpStatusCode.NotFound:
-                            throw new Exception("The update file was not found on the server.");
-                        case HttpStatusCode.BadRequest:
-                            throw new Exception("");
-                        case HttpStatusCode.InternalServerError:
-                            throw new Exception("");
-                        case HttpStatusCode.MethodNotAllowed:
-                            throw new Exception("");
-                        case HttpStatusCode.Forbidden:
-                            throw new Exception("");
-                    }
-                }
-            }
-            catch (System.Net.Http.HttpRequestException)
-            {
-                throw;
-            }
-            catch (Exception err)
-            {
-                Console.WriteLine(err.Message);
-            }
-
-            return (false, 0);
-        }
-
         #region Pull Settings
-        public bool ReadPullRatesFile(string selectedProfile)
+        private bool ReadPullRatesFile(string selectedProfile)
         {
-            string fileToRead = Path.Combine(jsPath, "profiles", selectedProfile, "rates.js");
+            string fileToRead = Path.Combine(GetProfilePath(selectedProfile, "js"), "rates.js");
             if (!File.Exists(fileToRead))
                 return false;
 
@@ -306,9 +296,9 @@ namespace GenshinImpact_WishOnStreamGUI
             return true;
         }
 
-        public bool ReadCharacterListFile(string selectedProfile)
+        private bool ReadCharacterListFile(string selectedProfile)
         {
-            string profilePath = Path.Combine(jsPath, "profiles", selectedProfile);
+            string profilePath = GetProfilePath(selectedProfile, "js");
             StarListObject = new();
             DullBlades = new();
 
@@ -395,14 +385,14 @@ namespace GenshinImpact_WishOnStreamGUI
 
                 foreach (string toCheck in filesToCheck)
                 {
-                    if (!File.Exists(Path.Combine(jsPath, "profiles", selectedProfile, toCheck)))
+                    if (!File.Exists(Path.Combine(GetProfilePath(selectedProfile, "js"), toCheck)))
                     {
                         filesNotFound.Add(toCheck);
                         filesAreValid = false;
 
                         // copy local config from "defaults" directory if it exists
-                        string defaultConfigToCopy = Path.Combine(jsPath, "profiles", "default", toCheck);
-                        string destinationPath = Path.Combine(jsPath, "profiles", selectedProfile, toCheck);
+                        string defaultConfigToCopy = Path.Combine(GetProfilePath("default", "js"), toCheck);
+                        string destinationPath = Path.Combine(GetProfilePath(selectedProfile, "js"), toCheck);
 
                         if (File.Exists(defaultConfigToCopy))
                         {
@@ -422,7 +412,7 @@ namespace GenshinImpact_WishOnStreamGUI
             return filesAreValid;
         }
 
-        public bool ReadPullSettingsFromFile(string selectedProfile)
+        private bool ReadPullSettingsFromFile(string selectedProfile)
         {
             bool first = ReadCharacterListFile(selectedProfile);
             bool second = ReadPullRatesFile(selectedProfile);
@@ -433,10 +423,71 @@ namespace GenshinImpact_WishOnStreamGUI
         }
         #endregion
 
+        #region Configs
+        public int GetDefaultCharacterListVersion()
+        {
+            int currentVersion = 0;
+            // copy local config from "defaults" directory if it exists
+            string defaultConfigToCopy = Path.Combine(profilesPath, "default", "js", "choices.js");
+
+            using (StreamReader reader = new(defaultConfigToCopy))
+            {
+                string firstLine = reader.ReadLine();
+                if (firstLine.StartsWith("// version:"))
+                    int.TryParse(firstLine.Replace("// version: ", ""), out currentVersion);
+            }
+            return currentVersion;
+        }
+
+        public async Task<(bool httpOk, int latestCharacterListVersion)> CheckCharacterListUpdate()
+        {
+            string choicesUrl = "https://raw.githubusercontent.com/honganqi/GenshinWishOnStream/main/browser_source/profiles/default/js/choices.js";
+
+            var request = Interwebs.httpClient.GetAsync(choicesUrl);
+
+            Task timeout = Task.Delay(3000);
+            await Task.WhenAny(timeout, request);
+
+            try
+            {
+                System.Net.Http.HttpResponseMessage response = request.Result;
+                if (response.IsSuccessStatusCode)
+                {
+                    var page = response.Content.ReadAsStringAsync();
+                    using var reader = new StringReader(page.Result);
+                    string choicesVersion = reader.ReadLine();
+                    if (choicesVersion.StartsWith("// version:"))
+                    {
+                        if (int.TryParse(choicesVersion.Replace("// version: ", ""), out int latestCharacterListVersion))
+                            return (true, latestCharacterListVersion);
+                    }
+                    else
+                    {
+                        return (true, 0);
+                    }
+                }
+                else
+                {
+                    if (response.StatusCode == HttpStatusCode.NotFound)
+                        throw new Exception("The update file was not found in the Genshin Wisher repository.");
+                }
+            }
+            catch (HttpRequestException)
+            {
+                throw new HttpRequestException("Could not connect to check the latest character list version.");
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine(err.Message);
+            }
+
+            return (false, 0);
+        }
+
         public async Task<bool> DownloadDefaultConfigs(List<string> items)
         {
             bool success = false;
-            string baseUrl = "https://raw.githubusercontent.com/honganqi/GenshinWishOnStream/refs/heads/main/browser_source/js/profiles/default/";
+            string baseUrl = "https://raw.githubusercontent.com/honganqi/GenshinWishOnStream/refs/heads/main/browser_source/profiles/default/js/";
 
             foreach (string item in items)
             {
@@ -444,7 +495,7 @@ namespace GenshinImpact_WishOnStreamGUI
                 {
                     string url = Path.Combine(baseUrl, item);
                     string file = await Interwebs.httpClient.GetStringAsync(url);
-                    string saveTo = Path.Combine(jsPath, "profiles", "default", item);
+                    string saveTo = Path.Combine(GetProfilePath("default", "js"), item);
                     File.WriteAllText(saveTo, file);
                     success = true;
                 }
@@ -457,7 +508,7 @@ namespace GenshinImpact_WishOnStreamGUI
             return success;
         }
 
-        public async Task<(List<string>, long)> DownloadDefaultImages_Prefetch()
+        public async Task<List<string>> DownloadDefaultImages_Prefetch(bool fullDownload = true)
         {
             List<string> paths = new();
             long totalSize = 0;
@@ -469,6 +520,24 @@ namespace GenshinImpact_WishOnStreamGUI
                 using var tree = JsonDocument.Parse(treeJson);
                 paths = new();
                 totalSize = 0;
+                List<string> existingFiles = [];
+                string checkPath = GetProfilePath("default", "img");
+
+                // if just checking for an update, don't do full download
+                // instead, check for existing files, add them to the exclusion list
+                if (!fullDownload)
+                {
+                    foreach (string path in Directory.EnumerateFiles(checkPath, "*.*", SearchOption.AllDirectories))
+                    {
+                        if (File.Exists(path))
+                        {
+                            string relativePath = path.Replace(checkPath, "")
+                                                    .TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                                                    .Replace('\\', '/');
+                            existingFiles.Add(relativePath);
+                        }
+                    }
+                }
 
                 foreach (var entree in tree.RootElement
                          .GetProperty("tree")
@@ -478,18 +547,31 @@ namespace GenshinImpact_WishOnStreamGUI
                         continue;
 
                     string path = entree.GetProperty("path").GetString()!;
-                    string targetPath = "browser_source/img/profiles/default";
+                    string targetPath = "browser_source/profiles/default/img/";
                     if (!path.StartsWith(targetPath))
                         continue;
 
-                    paths.Add(path);
-                    int fileSize = entree.GetProperty("size").GetInt32();
-                    totalSize += fileSize;
+                    // check if the file is excluded
+                    string newCheckPath = path.Replace(targetPath, "");
+                    if (!existingFiles.Contains(newCheckPath))
+                    {
+                        paths.Add(path);
+                        int fileSize = entree.GetProperty("size").GetInt32();
+                        totalSize += fileSize;
+                    }
                 }
 
-                DialogResult ask = MessageBox.Show($"Image count: {paths.Count}\nTotal size: {FormatFileSize(totalSize)}\n\nContinue?", "Confirm download", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                if (ask != DialogResult.Yes)
-                    throw new Exception("Exiting");
+                if (totalSize > 0 && fullDownload)
+                {
+                    DialogResult ask = MessageBox.Show($"Image count: {paths.Count}\nTotal size: {FormatFileSize(totalSize)}\n\nContinue?", "Confirm download", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (ask != DialogResult.Yes)
+                        throw new Exception("Exiting");
+                }
+                else
+                {
+                    if (fullDownload)
+                        MessageBox.Show("No new images found for download. All images are updated so far.", "Images still updated", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
             catch (HttpRequestException)
             {
@@ -499,7 +581,7 @@ namespace GenshinImpact_WishOnStreamGUI
             {
                 throw new Exception(ex.Message);
             }
-            return (paths, totalSize);
+            return paths;
         }
 
         public async Task<bool> DownloadDefaultImages(List<string> paths, IProgress<DownloadProgress> progress = null)
@@ -520,7 +602,7 @@ namespace GenshinImpact_WishOnStreamGUI
                     string downloadUrl = $"https://raw.githubusercontent.com/honganqi/GenshinWishOnStream/main/{path}";
 
                     // store path and preserve source paths but strip the git stuff
-                    string localPath = Path.Combine(imgPath, path.Replace("browser_source/img/", ""));
+                    string localPath = Path.Combine(GetProfilePath("default", "img"), path.Replace("browser_source/profiles/default/img/", ""));
 
                     // create the directory if needed
                     Directory.CreateDirectory(Path.GetDirectoryName(localPath));
@@ -532,7 +614,6 @@ namespace GenshinImpact_WishOnStreamGUI
                     using Stream remoteStream = await response.Content.ReadAsStreamAsync();
                     using FileStream localStream = File.Create(localPath);
                     await remoteStream.CopyToAsync(localStream);
-                    Console.WriteLine(path);
 
                     downloaded++;
 
@@ -551,16 +632,11 @@ namespace GenshinImpact_WishOnStreamGUI
             {
                 Console.WriteLine(ex.Message);
             }
-            finally
-            {
-                //progressDownloadImages.Hide();
-                //lblDownloadImagesStatus.Show();
-            }
 
             return success;
         }
 
-        public string FormatFileSize(long bytes)
+        private string FormatFileSize(long bytes)
         {
             if (bytes == 0)
                 return "0 bytes";
@@ -576,6 +652,7 @@ namespace GenshinImpact_WishOnStreamGUI
 
             return $"{num:0.#} {suffixes[place]}";
         }
+        #endregion
 
         #region User Info
         public async Task ValidateUserSettingsFromFiles()
@@ -608,7 +685,7 @@ namespace GenshinImpact_WishOnStreamGUI
                 "animation_duration"
             };
 
-            using (StreamReader sr = new(Path.Combine("js", "local_creds.js")))
+            using (StreamReader sr = new(Path.Combine(jsPath, "local_creds.js")))
             {
                 while (sr.Peek() >= 0)
                 {
@@ -658,7 +735,7 @@ namespace GenshinImpact_WishOnStreamGUI
             return _userInfo;
         }
 
-        public string SaveUserSettingsToFile(bool revoke = false, bool fromExpiredToken = false)
+        public void SaveUserSettingsToFile(bool revoke = false, bool fromExpiredToken = false)
         {
             string pathSettings = Path.Combine(jsPath, "local_creds.js");
             string errors = "";
@@ -666,7 +743,7 @@ namespace GenshinImpact_WishOnStreamGUI
 
             if (!File.Exists(pathSettings))
             {
-                MessageBox.Show("The \"local_creds.js\" file was not found in the \"js\" folder.\nOne will be created for you.\n\nPlease use the \"Connect to Twitch\" button to authenticate to allow you to select the Channel Point Reward and/or the chat command to use.");
+                errors += "The \"local_creds.js\" file was not found in the \"js\" folder.\nOne will be created for you.\n\nAfterwards, please use the \"Connect to Twitch\" button to authenticate to allow you to select the Channel Point Reward and/or the chat command to use.\n\n";
                 freshCredsFile = true;
             }
 
@@ -674,9 +751,9 @@ namespace GenshinImpact_WishOnStreamGUI
             if (!revoke)
             {
                 if (UserInfoObject.Name == "")
-                    errors += " - Username was blank. Please connect using the Twitch button.\n";
+                    errors += " - User is not set. Please connect using the Twitch button.\n";
                 if (UserInfoObject.Redeem == "")
-                    errors += " - The Channel Point Redeem is not set. Please set this or make sure you have access to Twitch channel point rewards (Twitch Affiiate, etc.).";
+                    errors += " - The Channel Points Reward is not set. Please set this or make sure you have access to Twitch channel point rewards (Twitch Affiiate, etc.).\n\n";
             }
             else
             {
@@ -687,10 +764,13 @@ namespace GenshinImpact_WishOnStreamGUI
             {
                 if (!fromExpiredToken)
                 {
-                    if (!UserInfoObject.RedeemEnabled && !UserInfoObject.TwitchCommandEnabled && !freshCredsFile)
-                        MessageBox.Show("You have not selected any way for your viewers to wish. Settings saved anyway.", "No option selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-
-                    errors = "User settings saved successfully!";
+                    if (!revoke)
+                    {
+                        if (!UserInfoObject.RedeemEnabled && !UserInfoObject.TwitchCommandEnabled && !freshCredsFile)
+                            errors += "You have not selected any way for your viewers to wish. Settings saved anyway.";
+                        else
+                            errors = "User settings saved successfully!";
+                    }
                 }
                 using StreamWriter writer = new(pathSettings);
                 writer.WriteLine("var channelName = \'" + UserInfoObject.Name + "\';");
@@ -702,12 +782,27 @@ namespace GenshinImpact_WishOnStreamGUI
                 writer.WriteLine("var twitchCommandEnabled = " + (UserInfoObject.TwitchCommandEnabled ? "true" : "false") + ";");
                 writer.WriteLine("var animation_duration = " + UserInfoObject.Duration + ";");
             }
-            else
-            {
-                errors = "User Settings errors:\n" + errors;
-            }
 
-            return errors;
+            if (errors != "")
+                MessageBox.Show(errors, "Save user", MessageBoxButtons.OK);
+        }
+
+        public void RewriteLocalCreds(HttpServer.AuthPayload payload)
+        {
+            string pathSettings = Path.Combine("js", "local_creds.js");
+            string js = File.ReadAllText(pathSettings);
+
+            js = ReplaceVar(js, "channelName", $"'{payload.ChannelName}'");
+            js = ReplaceVar(js, "channelID", $"'{payload.ChannelId}'");
+            js = ReplaceVar(js, "localToken", $"'{payload.Token.Replace("'", @"\'")}'");
+
+            File.WriteAllText(pathSettings, js);
+        }
+
+        string ReplaceVar(string source, string name, string value)
+        {
+            var pattern = $@"var\s+{name}\s*=\s*.*?;";
+            return Regex.Replace(source, pattern, $"var {name} = {value};");
         }
         #endregion
     }
@@ -842,10 +937,11 @@ namespace GenshinImpact_WishOnStreamGUI
 
     // thanks to Nick Charlton
     // https://thoughtbot.com/blog/using-httplistener-to-build-a-http-server-in-csharp
-    class HttpServer
+    public class HttpServer
     {
         public const string localhostAddress = "http://localhost:8275/";
         public event Action<AuthPayload> AuthCompleted;
+        public event Action<AuthPayload> RewriteLocalCreds;
         private HttpListener _listener;
 
         public void Start()
@@ -912,7 +1008,7 @@ namespace GenshinImpact_WishOnStreamGUI
             };
 
             // rewrite local_creds.js file with payload
-            RewriteLocalCreds(payload);
+            RewriteLocalCreds?.Invoke(payload);
 
             // notify listeners
             AuthCompleted?.Invoke(payload);
@@ -926,23 +1022,7 @@ namespace GenshinImpact_WishOnStreamGUI
             Stop();
         }
 
-        public void RewriteLocalCreds(AuthPayload payload)
-        {
-            string pathSettings = Path.Combine("js", "local_creds.js");
-            string js = File.ReadAllText(pathSettings);
 
-            js = ReplaceVar(js, "channelName", $"'{payload.ChannelName}'");
-            js = ReplaceVar(js, "channelID", $"'{payload.ChannelId}'");
-            js = ReplaceVar(js, "localToken", $"'{payload.Token.Replace("'", @"\'")}'");
-
-            File.WriteAllText(pathSettings, js);
-        }
-
-        string ReplaceVar(string source, string name, string value)
-        {
-            var pattern = $@"var\s+{name}\s*=\s*.*?;";
-            return Regex.Replace(source, pattern, $"var {name} = {value};");
-        }
 
         public class AuthPayload
         {
