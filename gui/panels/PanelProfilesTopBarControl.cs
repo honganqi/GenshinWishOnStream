@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 
 namespace GenshinImpact_WishOnStreamGUI.panels
@@ -8,8 +9,8 @@ namespace GenshinImpact_WishOnStreamGUI.panels
     {
         private bool _updatingCmb;
 
-        public Func<string, bool> ActivateProfile;
-        public Func<string, bool> ChangeProfile;
+        public Action<string> ActivateProfile;
+        public Action<string> ChangeProfile;
 
         public string activeProfile;
         public string selectedProfile;
@@ -50,8 +51,14 @@ namespace GenshinImpact_WishOnStreamGUI.panels
             selectedProfile = cmbProfiles.Text;
 
             // if files fail to validate, revert
-            if (!ChangeProfile.Invoke(selectedProfile))
+            try
+            {
+                ChangeProfile.Invoke(selectedProfile);
+            }
+            catch (IOException)
+            {
                 selectedProfile = previousProfile;
+            }
 
             cmbProfiles.SelectedIndex = cmbProfiles.FindStringExact(selectedProfile);
         }
@@ -80,8 +87,13 @@ namespace GenshinImpact_WishOnStreamGUI.panels
         private void cmbProfiles_DropDown(object sender, EventArgs e) => cmbProfiles_DropDownAutoResize(sender);
         private void btnProfileActivate_Click(object sender, EventArgs e)
         {
-            if (ActivateProfile.Invoke(cmbProfiles.Text))
+            try
+            {
+                ActivateProfile.Invoke(cmbProfiles.Text);
                 SetActiveProfile(cmbProfiles.Text);
+            }
+            catch (FileNotFoundException) { throw; }
+            catch (IOException) { throw; }
         }
         #endregion
 

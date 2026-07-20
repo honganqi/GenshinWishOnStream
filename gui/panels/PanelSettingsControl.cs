@@ -116,7 +116,7 @@ namespace GenshinImpact_WishOnStreamGUI
                     lblTokenExpired.Text = ex.Message;
                     lblTokenExpired.Visible = true;
                 }));
-                throw new UnauthorizedAccessException(ex.Message);
+                throw;
             }
             catch (Exception ex)
             {

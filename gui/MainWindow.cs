@@ -108,7 +108,21 @@ namespace GenshinImpact_WishOnStreamGUI
 
             // action delegates
             #region Profile Delegates
-            panelProfilesControl.SaveProfileToFile = async (newProfile, sourceProfile) => SaveProfile(newProfile, sourceProfile);
+            panelProfilesControl.SaveProfileToFile = (newProfile, sourceProfile) =>
+            {
+                try
+                {
+                    SaveProfile(newProfile, sourceProfile);
+                }
+                catch (ArgumentException ex)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
+            };
 
             panelProfilesControl.ResetDownloadConfigs = async fileList =>
             {
@@ -117,7 +131,7 @@ namespace GenshinImpact_WishOnStreamGUI
                 {
                     success = await _library.DownloadDefaultConfigs(fileList);
                 }
-                catch (Exception ex)
+                catch (HttpRequestException ex)
                 {
                     throw new Exception(ex.Message);
                 }
@@ -134,16 +148,19 @@ namespace GenshinImpact_WishOnStreamGUI
                     {
                         panelProfilesControl.UpdateProgress(p);
                     });
-                    await _library.DownloadDefaultImages(paths, progress);
+                    if (paths.Count > 0)
+                    {
+                        await _library.DownloadDefaultImages(paths, progress);
+                    }
                 }
                 catch (HttpRequestException ex)
                 {
                     MessageBox.Show(ex.Message, "Download error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     // exit/cancel download
-                    //MessageBox.Show("Cancelled download", "Download cancelled", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 finally
                 {
@@ -153,28 +170,44 @@ namespace GenshinImpact_WishOnStreamGUI
 
             panelProfilesControl.ChangeProfile = profile =>
             {
-                bool filesAreValid = ChangeProfile(profile);
-                panelProfilesTopBarControl.SetSelectedProfile(profile);
-                return filesAreValid;
+                try
+                {
+                    ChangeProfile(profile);
+                    panelProfilesTopBarControl.SetSelectedProfile(profile);
+                }
+                catch (IOException) { throw; }
             };
 
             panelProfilesTopBarControl.ChangeProfile = profile =>
             {
-                bool filesAreValid = ChangeProfile(profile);
-                panelProfilesControl.SetSelectedProfile(profile);
-                return filesAreValid;
+                try
+                {
+                    ChangeProfile(profile);
+                    panelProfilesControl.SetSelectedProfile(profile);
+                }
+                catch (IOException) { throw; }
             };
 
             panelProfilesControl.ActivateProfile = profile =>
             {
-                bool activateSuccess = ActivateProfile(profile);
-                return activateSuccess;
+                try
+                {
+                    // throws FileNotFoundException or IOException
+                    ActivateProfile(profile);
+                }
+                catch (FileNotFoundException) { throw; }
+                catch (IOException) { throw; }
             };
 
             panelProfilesTopBarControl.ActivateProfile = profile =>
             {
-                bool activateSuccess = ActivateProfile(profile);
-                return activateSuccess;
+                try
+                {
+                    // throws FileNotFoundException or IOException
+                    ActivateProfile(profile);
+                }
+                catch (FileNotFoundException) { throw; }
+                catch (IOException) { throw; }
             };
 
             panelProfilesControl.DeleteProfile = async profile =>
@@ -182,12 +215,14 @@ namespace GenshinImpact_WishOnStreamGUI
                 try
                 {
                     await _library.DeleteProfile(profile);
-                    bool filesAreValid = ChangeProfile("default");
+                    ChangeProfile("default");
                     panelProfilesControl.SetSelectedProfile("default");
                     ActivateProfile("default");
                     UpdateProfileList();
                     MessageBox.Show($"The \"{profile}\" profile has been successfully deleted.", "Profile deleted", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
+                catch (FileNotFoundException) { throw; }
+                catch (IOException) { throw; }
                 catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message, "Delete failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -278,25 +313,33 @@ namespace GenshinImpact_WishOnStreamGUI
                 MessageBox.Show(string.Join("\n", errors), "Unable to connect", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
-        private bool ChangeProfile(string profile)
+        private void ChangeProfile(string profile)
         {
             // TO-DO: before switching, check if there are unsaved changes and ask
-            bool filesAreValid = _library.ValidateOrRepairPullSettings(profile);
-            panelCharactersControl.InitializeCharactersPanel(_library.StarListObject);
-            panelDullBladesControl.InitializeDullBladesPanel(_library.DullBlades);
-            return filesAreValid;
+            try
+            {
+                // ValidateOrRepairPullSettings handles FileNotFoundException by creating those missing files
+                _library.ValidateOrRepairPullSettings(profile);
+                panelCharactersControl.InitializeCharactersPanel(_library.StarListObject);
+                panelDullBladesControl.InitializeDullBladesPanel(_library.DullBlades);
+            }
+            catch (IOException) { throw; }
         }
 
-        private bool ActivateProfile(string profile)
+        private void ActivateProfile(string profile)
         {
             // TO-DO: save AND activate?
-            bool activateSuccess = _library.ActivateProfile(profile);
-            activeProfile = profile;
-            panelProfilesControl.SetActiveProfile(activeProfile);
-            panelProfilesTopBarControl.SetActiveProfile(activeProfile);
-            panelCharactersControl.InitializeCharactersPanel(_library.StarListObject);
-            panelDullBladesControl.InitializeDullBladesPanel(_library.DullBlades);
-            return activateSuccess;
+            try
+            {
+                _library.ActivateProfile(profile);
+                activeProfile = profile;
+                panelProfilesControl.SetActiveProfile(activeProfile);
+                panelProfilesTopBarControl.SetActiveProfile(activeProfile);
+                panelCharactersControl.InitializeCharactersPanel(_library.StarListObject);
+                panelDullBladesControl.InitializeDullBladesPanel(_library.DullBlades);
+            }
+            catch (FileNotFoundException) { throw; }
+            catch (IOException) { throw; }
         }
 
         private void UpdateProfileList()
@@ -311,12 +354,23 @@ namespace GenshinImpact_WishOnStreamGUI
         #region File Read-Write
         void SaveProfile(string profile, string sourceProfileofImages = "")
         {
-            // TO-DO: check if saving active or selected/editing profile
             StarList starList = panelCharactersControl.ExtractDataFromCharactersPanel();
             List<string> dullBlades = panelDullBladesControl.ExtractDataFromDullBladesPanel();
             _library.StarListObject = starList;
             _library.DullBlades = dullBlades;
-            _library.SaveProfile(profile, sourceProfileofImages);
+            try
+            {
+                _library.SaveProfile(profile, sourceProfileofImages);
+            }
+            catch (ArgumentException)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            
         }
         #endregion
 
@@ -463,17 +517,21 @@ namespace GenshinImpact_WishOnStreamGUI
                     if (ask == DialogResult.Yes)
                         await _library.DownloadDefaultImages(downloadList);
                     if (ask == DialogResult.Cancel)
-                        throw new Exception("cancelled");
+                        return;
+
+                    await _library.DownloadDefaultConfigs(fileList);
+                    MessageBox.Show("Default profile updated successfully!", "Downloaded Default Profile", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    lblLatestCharacterList.Hide();
+                    btnGetLatestCharacterList.Hide();
                 }
-                await _library.DownloadDefaultConfigs(fileList);
-                MessageBox.Show("Default profile updated successfully!", "Downloaded Default Profile", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                lblLatestCharacterList.Hide();
-                btnGetLatestCharacterList.Hide();
+            }
+            catch (HttpRequestException ex)
+            {
+                MessageBox.Show(ex.Message, "Download error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                if (ex.Message != "cancelled")
-                    MessageBox.Show(ex.Message, "Download error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             
         }

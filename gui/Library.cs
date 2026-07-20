@@ -31,17 +31,17 @@ namespace GenshinImpact_WishOnStreamGUI
         void SaveProfile(string selectedProfile, string sourceProfileOfImages);
         Task DeleteProfile(string selectedProfile);
         string[] CheckProfiles();
-        bool ActivateProfile(string selectedProfile);
+        void ActivateProfile(string selectedProfile);
 
         // Pull Settings
-        bool ValidateOrRepairPullSettings(string selectedProfile);
+        void ValidateOrRepairPullSettings(string selectedProfile);
 
         // Configs
         int GetDefaultCharacterListVersion();
         Task<(bool httpOk, int latestCharacterListVersion)> CheckCharacterListUpdate();
         Task<bool> DownloadDefaultConfigs(List<string> items);
         Task<List<string>> DownloadDefaultImages_Prefetch(bool fullDownload = true);
-        Task<bool> DownloadDefaultImages(List<string> paths, IProgress<DownloadProgress> progress = null);
+        Task DownloadDefaultImages(List<string> paths, IProgress<DownloadProgress> progress = null);
 
         // User Info
         Task ValidateUserSettingsFromFiles();
@@ -82,107 +82,121 @@ namespace GenshinImpact_WishOnStreamGUI
         #region Profiles
         public void SaveProfile(string selectedProfile, string sourceProfileOfImages = "")
         {
-            // create directory if it doesn't exist
-            string profileJsPath = GetProfilePath(selectedProfile, "js");
-            if (Directory.Exists(profileJsPath))
+            try
             {
-                DialogResult exitAsk = MessageBox.Show("This will overwrite the profile. Are you sure?", "Confirm overwrite", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                if (exitAsk != DialogResult.Yes)
-                    return;
-            }
-            Directory.CreateDirectory(profileJsPath);
-            string pathChoices = Path.Combine(profileJsPath, "choices.js");
-            string pathRates = Path.Combine(profileJsPath, "rates.js");
+                ValidateDirectoryName(selectedProfile);
 
-            List<string> messages = new();
-
-            if (StarListObject.Count > 0)
-            {
-                SortedDictionary<int, int> rates = new();
-                Dictionary<string, string> characterElements = new();
-                using (StreamWriter writer = new(pathChoices))
+                // create directory if it doesn't exist
+                string profileJsPath = GetProfilePath(selectedProfile, "js");
+                if (Directory.Exists(profileJsPath))
                 {
-                    writer.WriteLine("let choices = [];\n");
+                    DialogResult exitAsk = MessageBox.Show("This will overwrite the profile. Are you sure?", "Confirm overwrite", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (exitAsk != DialogResult.Yes)
+                        return;
+                }
+                Directory.CreateDirectory(profileJsPath);
+                string pathChoices = Path.Combine(profileJsPath, "choices.js");
+                string pathRates = Path.Combine(profileJsPath, "rates.js");
 
-                    // iterate over characters and rates
-                    foreach (KeyValuePair<int, CharacterListInStar> charListPair in StarListObject)
+                List<string> messages = new();
+
+                if (StarListObject.Count > 0)
+                {
+                    SortedDictionary<int, int> rates = new();
+                    Dictionary<string, string> characterElements = new();
+                    using (StreamWriter writer = new(pathChoices))
                     {
-                        int starValue = charListPair.Key;
-                        CharacterListInStar charList = charListPair.Value;
-                        rates.Add(starValue, charList.PullRate);
+                        writer.WriteLine("let choices = [];\n");
 
-                        writer.WriteLine("// " + starValue + "-star choices");
-                        writer.WriteLine("choices[" + starValue + "] = [");
-
-                        foreach (Character character in charList)
+                        // iterate over characters and rates
+                        foreach (KeyValuePair<int, CharacterListInStar> charListPair in StarListObject)
                         {
-                            writer.WriteLine("\t{name: \"" + character.CharacterName + "\", element: \"" + character.Element + "\"},");
-                            characterElements.Add(character.CharacterName, character.Element);
+                            int starValue = charListPair.Key;
+                            CharacterListInStar charList = charListPair.Value;
+                            rates.Add(starValue, charList.PullRate);
+
+                            writer.WriteLine("// " + starValue + "-star choices");
+                            writer.WriteLine("choices[" + starValue + "] = [");
+
+                            foreach (Character character in charList)
+                            {
+                                writer.WriteLine("\t{name: \"" + character.CharacterName + "\", element: \"" + character.Element + "\"},");
+                                characterElements.Add(character.CharacterName, character.Element);
+                            }
+
+                            writer.WriteLine("];\n");
                         }
 
-                        writer.WriteLine("];\n");
+                        // dull blades
+                        if (DullBlades.Count > 0)
+                        {
+                            writer.WriteLine("\n\n");
+                            writer.WriteLine("let dullBlades = [");
+                            foreach (string bladeName in DullBlades)
+                                writer.WriteLine("\t\"" + bladeName + "\",");
+                            writer.WriteLine("];");
+                        }
                     }
 
-                    // dull blades
-                    if (DullBlades.Count > 0)
+                    // process rates
+                    if (rates.Count > 0)
                     {
-                        writer.WriteLine("\n\n");
-                        writer.WriteLine("let dullBlades = [");
-                        foreach (string bladeName in DullBlades)
-                            writer.WriteLine("\t\"" + bladeName + "\",");
-                        writer.WriteLine("];");
+                        using StreamWriter writer = new(pathRates);
+
+                        writer.WriteLine("let rates = [];\n");
+                        writer.WriteLine("// To customize this, the syntax is \"rates[x] = y\"");
+                        writer.WriteLine("// where \"x\" is the star value and \"y\" is the pull rate (out of 100)");
+
+                        foreach (KeyValuePair<int, int> ratePair in rates.Reverse())
+                        {
+                            int starValue = ratePair.Key;
+                            int rate = ratePair.Value;
+                            writer.WriteLine("rates[" + starValue + "] = " + rate + ";");
+                        }
+
+                        messages.Add("Profile saved successfully!");
                     }
-                }
-
-                // process rates
-                if (rates.Count > 0)
-                {
-                    using StreamWriter writer = new(pathRates);
-
-                    writer.WriteLine("let rates = [];\n");
-                    writer.WriteLine("// To customize this, the syntax is \"rates[x] = y\"");
-                    writer.WriteLine("// where \"x\" is the star value and \"y\" is the pull rate (out of 100)");
-
-                    foreach (KeyValuePair<int, int> ratePair in rates.Reverse())
+                    else
                     {
-                        int starValue = ratePair.Key;
-                        int rate = ratePair.Value;
-                        writer.WriteLine("rates[" + starValue + "] = " + rate + ";");
+                        messages.Add("No rates found.");
                     }
-
-                    messages.Add("Profile saved successfully!");
                 }
                 else
                 {
-                    messages.Add("No rates found.");
+                    messages.Add("There was an error in the Character table data.");
                 }
-            }
-            else
-            {
-                messages.Add("There was an error in the Character table data.");
-            }
 
-            if (sourceProfileOfImages != "")
-            {
-                // create directory if it doesn't exist
-                string sourceDir = GetProfilePath(sourceProfileOfImages, "img");
-                DirectoryInfo imgDir = new(sourceDir);
-
-                string profileImgPath = GetProfilePath(selectedProfile, "img");
-                Directory.CreateDirectory(profileImgPath);
-
-                foreach (FileInfo file in imgDir.EnumerateFiles("*", SearchOption.AllDirectories))
+                if (sourceProfileOfImages != "")
                 {
-                    string fileToCopy = file.FullName.Substring(imgDir.FullName.Length + 1);
-                    string relativePath = Path.GetDirectoryName(fileToCopy);
-                    Directory.CreateDirectory(Path.Combine(profileImgPath, relativePath));
-                    file.CopyTo(Path.Combine(profileImgPath, fileToCopy), true);
+                    // create directory if it doesn't exist
+                    string sourceDir = GetProfilePath(sourceProfileOfImages, "img");
+                    DirectoryInfo imgDir = new(sourceDir);
+
+                    string profileImgPath = GetProfilePath(selectedProfile, "img");
+                    Directory.CreateDirectory(profileImgPath);
+
+                    foreach (FileInfo file in imgDir.EnumerateFiles("*", SearchOption.AllDirectories))
+                    {
+                        string fileToCopy = file.FullName.Substring(imgDir.FullName.Length + 1);
+                        string relativePath = Path.GetDirectoryName(fileToCopy);
+                        Directory.CreateDirectory(Path.Combine(profileImgPath, relativePath));
+                        file.CopyTo(Path.Combine(profileImgPath, fileToCopy), true);
+                    }
+
                 }
 
-            }
+                if (messages.Count > 0)
+                    MessageBox.Show(string.Join("\n\n", messages), "Save status", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-            if (messages.Count > 0)
-                MessageBox.Show(string.Join("\n\n", messages), "Save status", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (ArgumentException)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         public async Task DeleteProfile(string selectedProfile)
@@ -211,11 +225,14 @@ namespace GenshinImpact_WishOnStreamGUI
             return profiles;
         }
 
-        public bool ActivateProfile(string selectedProfile)
+        public void ActivateProfile(string selectedProfile)
         {
             // save profile before?
-            if (ReadPullSettingsFromFile(selectedProfile))
+            try
             {
+                // throws FileNotFoundException or IOException
+                ReadPullSettingsFromFile(selectedProfile);
+
                 string sourceJsPath = GetProfilePath(selectedProfile, "js");
                 string sourceImgPath = GetProfilePath(selectedProfile, "img");
 
@@ -252,9 +269,9 @@ namespace GenshinImpact_WishOnStreamGUI
                     file.CopyTo(Path.Combine(imgPath, fileToCopy), true);
                 }
 
-                return true;
             }
-            return false;
+            catch (FileNotFoundException) { throw; }
+            catch (IOException) { throw; }
         }
 
         private string GetProfilePath(string selectedProfile, string dir)
@@ -262,119 +279,173 @@ namespace GenshinImpact_WishOnStreamGUI
             string path = Path.Combine(profilesPath, selectedProfile, dir);
             return path;
         }
+
+        private void ValidateDirectoryName(string dirName)
+        {
+            dirName = dirName.Trim();
+
+            if (string.IsNullOrEmpty(dirName))
+                throw new ArgumentException("Profile name cannot be empty.");
+
+            // I mean, if anybody is even crazy enough to name a profile with more than 255 characters, catch them and send them to forever repeat the Taishan Mansion domain
+            if (dirName.Length > 255)
+            {
+                throw new ArgumentException("Profile name cannot be longer than 255 characters. Are you crazy?");
+            }
+
+            char[] invalidChars = Path.GetInvalidFileNameChars();
+            if (dirName.Contains('/') || dirName.Contains('\\') || dirName.Contains("..") || dirName.Any(c => invalidChars.Contains(c)))
+            {
+                throw new ArgumentException("Invalid characters found in the profile name.");
+            }
+
+            if (dirName.EndsWith("."))
+            {
+                throw new ArgumentException("The profile name cannot end with a \".\"");
+            }
+
+            List<string> reservedWindowsNames =
+            [
+                "CON", "PRN", "AUX", "NUL",
+                "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+                "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+            ];
+            if (reservedWindowsNames.Contains(dirName))
+            {
+                throw new ArgumentException("The profile name cannot be one of the reserved Windows names.");
+            }
+        }
         #endregion
 
         #region Pull Settings
-        private bool ReadPullRatesFile(string selectedProfile)
+        private void ReadPullRatesFile(string selectedProfile)
         {
-            string fileToRead = Path.Combine(GetProfilePath(selectedProfile, "js"), "rates.js");
-            if (!File.Exists(fileToRead))
-                return false;
-
-            using (StreamReader sr = new(fileToRead))
+            try
             {
-                while (sr.Peek() >= 0)
+                string fileToRead = Path.Combine(GetProfilePath(selectedProfile, "js"), "rates.js");
+
+                using (StreamReader sr = new(fileToRead))
                 {
-                    string line = sr.ReadLine().Trim();
-                    string searchTerm = "rates[";
-                    int strpos = line.IndexOf(searchTerm);
-                    if (strpos == 0)
+                    while (sr.Peek() >= 0)
                     {
-                        string[] pair = line.Split('=');
-                        string indexStr = pair[0].Remove(0, searchTerm.Length).Replace("]", "").Trim();
-                        if (!int.TryParse(indexStr, out int index))
-                            return false;
+                        string line = sr.ReadLine().Trim();
+                        string searchTerm = "rates[";
+                        int strpos = line.IndexOf(searchTerm);
+                        if (strpos == 0)
+                        {
+                            string[] pair = line.Split('=');
+                            string indexStr = pair[0].Remove(0, searchTerm.Length).Replace("]", "").Trim();
+                            if (!int.TryParse(indexStr, out int index))
+                                return;
 
-                        string rateStr = pair[1].Replace(";", "").Trim();
-                        if (!int.TryParse(rateStr, out int rate))
-                            return false;
+                            string rateStr = pair[1].Replace(";", "").Trim();
+                            if (!int.TryParse(rateStr, out int rate))
+                                return;
 
-                        StarListObject[index].PullRate = rate;
+                            StarListObject[index].PullRate = rate;
+                        }
                     }
                 }
             }
-            return true;
+            catch (FileNotFoundException ex)
+            {
+                throw new FileNotFoundException(ex.FileName);
+            }
+            catch (IOException)
+            {
+                throw;
+            }
         }
 
-        private bool ReadCharacterListFile(string selectedProfile)
+        private void ReadCharacterListFile(string selectedProfile)
         {
             string profilePath = GetProfilePath(selectedProfile, "js");
             StarListObject = new();
             DullBlades = new();
 
-            if (!File.Exists(Path.Combine(profilePath, "choices.js")))
-                return false;
-
-            using StreamReader sr = new(Path.Combine(profilePath, "choices.js"));
-            int currentStarValue = 0;
-            bool isInsideCharacterBracket = false;
-            bool isInsideDullBladesBracket = false;
-            List<CharacterElementPair> charElemPairList = new();
-
-            while (sr.Peek() >= 0)
+            try
             {
-                string line = sr.ReadLine().Trim();
-                string starValueStringStart = "choices[";
-                string starValueStringEnd = "];";
-                string elementDictionaryStart = "let elementDictionary = {";
-                string elementDictionaryEnd = "};";
-                string dullBladesStart = "let dullBlades = [";
-                string dullBladesEnd = "];";
+                using StreamReader sr = new(Path.Combine(profilePath, "choices.js"));
+                int currentStarValue = 0;
+                bool isInsideCharacterBracket = false;
+                bool isInsideDullBladesBracket = false;
+                List<CharacterElementPair> charElemPairList = new();
 
-                int starValueStringIndex = line.IndexOf(starValueStringStart);
-                int starValueStringEndIndex = line.IndexOf(starValueStringEnd);
-                int elementDictionaryStartIndex = line.IndexOf(elementDictionaryStart);
-                int elementDictionaryEndIndex = line.IndexOf(elementDictionaryEnd);
-                int dullBladesStartIndex = line.IndexOf(dullBladesStart);
-                int dullBladesEndIndex = line.IndexOf(dullBladesEnd);
+                while (sr.Peek() >= 0)
+                {
+                    string line = sr.ReadLine().Trim();
+                    string starValueStringStart = "choices[";
+                    string starValueStringEnd = "];";
+                    string elementDictionaryStart = "let elementDictionary = {";
+                    string elementDictionaryEnd = "};";
+                    string dullBladesStart = "let dullBlades = [";
+                    string dullBladesEnd = "];";
 
-                if (starValueStringIndex >= 0)
-                {
-                    isInsideCharacterBracket = true;
-                    string[] pair = line.Split('=');
-                    string indexStr = pair[0].Remove(0, starValueStringStart.Length).Replace("]", "").Trim();
-                    if (!int.TryParse(indexStr, out currentStarValue))
-                        return false;
+                    int starValueStringIndex = line.IndexOf(starValueStringStart);
+                    int starValueStringEndIndex = line.IndexOf(starValueStringEnd);
+                    int elementDictionaryStartIndex = line.IndexOf(elementDictionaryStart);
+                    int elementDictionaryEndIndex = line.IndexOf(elementDictionaryEnd);
+                    int dullBladesStartIndex = line.IndexOf(dullBladesStart);
+                    int dullBladesEndIndex = line.IndexOf(dullBladesEnd);
 
-                    StarListObject.AddStar(currentStarValue);
-                }
-                else if ((starValueStringEndIndex >= 0) && (isInsideCharacterBracket))
-                {
-                    isInsideCharacterBracket = false;
-                }
-                else if (isInsideCharacterBracket)
-                {
-                    CharacterElementPair charElemPair = JsonConvert.DeserializeObject<CharacterElementPair>(line.Trim(','));
-                    charElemPairList.Add(charElemPair);
-                    StarListObject[currentStarValue].Add(charElemPair.Name);
-                    StarListObject[currentStarValue][charElemPair.Name].Star = currentStarValue;
-                    StarListObject[charElemPair.Name].Element = charElemPair.Element;
-                }
-                else if (dullBladesStartIndex >= 0)
-                {
-                    isInsideDullBladesBracket = true;
-                }
-                else if ((dullBladesEndIndex >= 0) && (isInsideDullBladesBracket))
-                {
-                    currentStarValue++;
-                    isInsideDullBladesBracket = false;
-                }
-                else if (isInsideDullBladesBracket)
-                {
-                    string dullBladeName = line.Replace("\"", "").Replace("\'", "").Replace(",", "").Trim();
+                    if (starValueStringIndex >= 0)
+                    {
+                        isInsideCharacterBracket = true;
+                        string[] pair = line.Split('=');
+                        string indexStr = pair[0].Remove(0, starValueStringStart.Length).Replace("]", "").Trim();
+                        if (!int.TryParse(indexStr, out currentStarValue))
+                            return;
 
-                    DullBlades.Add(dullBladeName);
+                        StarListObject.AddStar(currentStarValue);
+                    }
+                    else if ((starValueStringEndIndex >= 0) && (isInsideCharacterBracket))
+                    {
+                        isInsideCharacterBracket = false;
+                    }
+                    else if (isInsideCharacterBracket)
+                    {
+                        CharacterElementPair charElemPair = JsonConvert.DeserializeObject<CharacterElementPair>(line.Trim(','));
+                        charElemPairList.Add(charElemPair);
+                        StarListObject[currentStarValue].Add(charElemPair.Name);
+                        StarListObject[currentStarValue][charElemPair.Name].Star = currentStarValue;
+                        StarListObject[charElemPair.Name].Element = charElemPair.Element;
+                    }
+                    else if (dullBladesStartIndex >= 0)
+                    {
+                        isInsideDullBladesBracket = true;
+                    }
+                    else if ((dullBladesEndIndex >= 0) && (isInsideDullBladesBracket))
+                    {
+                        currentStarValue++;
+                        isInsideDullBladesBracket = false;
+                    }
+                    else if (isInsideDullBladesBracket)
+                    {
+                        string dullBladeName = line.Replace("\"", "").Replace("\'", "").Replace(",", "").Trim();
+
+                        DullBlades.Add(dullBladeName);
+                    }
                 }
             }
-            return true;
+            catch (FileNotFoundException ex)
+            {
+                throw new FileNotFoundException(ex.FileName);
+            }
+            catch (IOException)
+            {
+                throw;
+            }
         }
 
-        public bool ValidateOrRepairPullSettings(string selectedProfile)
+        public void ValidateOrRepairPullSettings(string selectedProfile)
         {
             // check the JS files if they exist
             // TO-DO: also check if valid
-            bool filesAreValid = ReadPullSettingsFromFile(selectedProfile);
-            if (!filesAreValid)
+            try
+            {
+                ReadPullSettingsFromFile(selectedProfile);
+            }
+            catch (FileNotFoundException)
             {
                 List<string> filesToCheck = new()
                 {
@@ -388,7 +459,6 @@ namespace GenshinImpact_WishOnStreamGUI
                     if (!File.Exists(Path.Combine(GetProfilePath(selectedProfile, "js"), toCheck)))
                     {
                         filesNotFound.Add(toCheck);
-                        filesAreValid = false;
 
                         // copy local config from "defaults" directory if it exists
                         string defaultConfigToCopy = Path.Combine(GetProfilePath("default", "js"), toCheck);
@@ -397,7 +467,6 @@ namespace GenshinImpact_WishOnStreamGUI
                         if (File.Exists(defaultConfigToCopy))
                         {
                             File.Copy(defaultConfigToCopy, destinationPath);
-                            filesAreValid = true;
                         }
                     }
                 }
@@ -408,18 +477,39 @@ namespace GenshinImpact_WishOnStreamGUI
                     MessageBoxIcon.Warning
                     );
             }
+            catch (IOException)
+            {
 
-            return filesAreValid;
+            }
         }
 
-        private bool ReadPullSettingsFromFile(string selectedProfile)
+        private void ReadPullSettingsFromFile(string selectedProfile)
         {
-            bool first = ReadCharacterListFile(selectedProfile);
-            bool second = ReadPullRatesFile(selectedProfile);
-            if (ReadCharacterListFile(selectedProfile) && ReadPullRatesFile(selectedProfile))
-                return true;
+            List<string> missingFiles = [];
+            try
+            {
+                ReadCharacterListFile(selectedProfile);
+            }
+            catch (FileNotFoundException ex)
+            {
+                missingFiles.Add(ex.FileName);
+            }
+            catch (IOException) { throw; }
 
-            return false;
+            try
+            {
+                ReadPullRatesFile(selectedProfile);
+            }
+            catch (FileNotFoundException ex)
+            {
+                missingFiles.Add(ex.FileName);
+            }
+            catch (IOException) { throw; }
+
+            if (missingFiles.Count > 0)
+            {
+                throw new FileNotFoundException("The following files were not found: \n - " + String.Join("\n - ", [.. missingFiles]));
+            }
         }
         #endregion
 
@@ -501,7 +591,7 @@ namespace GenshinImpact_WishOnStreamGUI
                 }
                 catch (HttpRequestException)
                 {
-                    throw new Exception($"Unable to download default profile configs.\n\nUnable to connect to {baseUrl}.");
+                    throw new HttpRequestException($"Unable to download default profile configs.\n\nFailed to connect to {baseUrl}.");
                 }
             }
             ReadPullSettingsFromFile("default"); // checks *.js files, updates characters/dullblades panel
@@ -565,7 +655,7 @@ namespace GenshinImpact_WishOnStreamGUI
                 {
                     DialogResult ask = MessageBox.Show($"Image count: {paths.Count}\nTotal size: {FormatFileSize(totalSize)}\n\nContinue?", "Confirm download", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                     if (ask != DialogResult.Yes)
-                        throw new Exception("Exiting");
+                        return [];
                 }
                 else
                 {
@@ -573,20 +663,13 @@ namespace GenshinImpact_WishOnStreamGUI
                         MessageBox.Show("No new images found for download. All images are updated so far.", "Images still updated", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
-            catch (HttpRequestException)
-            {
-                throw new Exception("Unable to download default profile images.");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            catch (HttpRequestException) { throw; }
+            catch (Exception) { throw; }
             return paths;
         }
 
-        public async Task<bool> DownloadDefaultImages(List<string> paths, IProgress<DownloadProgress> progress = null)
+        public async Task DownloadDefaultImages(List<string> paths, IProgress<DownloadProgress> progress = null)
         {
-            bool success = false;
             try
             {
                 int downloaded = 0;
@@ -626,14 +709,17 @@ namespace GenshinImpact_WishOnStreamGUI
             }
             catch (HttpRequestException)
             {
-                throw new Exception($"Unable to download default images.");
+                throw new HttpRequestException($"Unable to download default images.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
+        }
 
-            return success;
+        public void ValidateOrSanitizeFilename()
+        {
+
         }
 
         private string FormatFileSize(long bytes)

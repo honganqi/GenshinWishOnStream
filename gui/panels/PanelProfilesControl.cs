@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -13,10 +14,10 @@ namespace GenshinImpact_WishOnStreamGUI
         public string selectedProfile;
 
         public Action<string, string> SaveProfileToFile;
-        public Func<string, bool> ActivateProfile;
+        public Action<string> ActivateProfile;
         public Func<List<string>, Task<bool>> ResetDownloadConfigs;
         public Action DownloadDefaultImages_Ask;
-        public Func<string, bool> ChangeProfile;
+        public Action<string> ChangeProfile;
         public Action<string> DeleteProfile;
         public Action UpdateProfileList;
 
@@ -115,8 +116,14 @@ namespace GenshinImpact_WishOnStreamGUI
             selectedProfile = cmbProfiles.Text;
 
             // if files fail to validate, revert
-            if (!ChangeProfile.Invoke(selectedProfile))
+            try
+            {
+                ChangeProfile.Invoke(selectedProfile);
+            }
+            catch (IOException)
+            {
                 selectedProfile = previousProfile;
+            }
 
             UpdateProfileText();
         }
@@ -144,7 +151,11 @@ namespace GenshinImpact_WishOnStreamGUI
         }
         private void cmbProfiles_DropDown(object sender, EventArgs e) => cmbProfiles_DropDownAutoResize(sender);
         private async void btnGetImages_Click(object sender, EventArgs e) => await InitializeDownloadDefaultImages();
-        private void btnProfileCreate_Click(object sender, EventArgs e) => panelNewProfile.Show();
+        private void btnProfileCreate_Click(object sender, EventArgs e)
+        {
+            panelNewProfile.Show();
+            txtNewProfile.Select();
+        }
         private void btnProfileCreateCancel_Click(object sender, EventArgs e)
         {
             panelNewProfile.Hide();
@@ -153,10 +164,21 @@ namespace GenshinImpact_WishOnStreamGUI
         private void btnProfileCreateSave_Click(object sender, EventArgs e)
         {
             // TO-DO: sanitize new name
-            SaveProfileToFile.Invoke(txtNewProfile.Text, selectedProfile);
-            panelNewProfile.Hide();
-            txtNewProfile.Text = "";
-            UpdateProfileList.Invoke();
+            try
+            {
+                SaveProfileToFile.Invoke(txtNewProfile.Text, selectedProfile);
+                panelNewProfile.Hide();
+                txtNewProfile.Text = "";
+                UpdateProfileList.Invoke();
+            }
+            catch (ArgumentException ex)
+            {
+                MessageBox.Show(ex.Message, "Invalid profile name", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Save error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
         private async void btnResetDefaults_Click(object sender, EventArgs e)
         {
@@ -167,8 +189,13 @@ namespace GenshinImpact_WishOnStreamGUI
         }
         private void btnProfileActivate_Click(object sender, EventArgs e)
         {
-            if (ActivateProfile.Invoke(cmbProfiles.Text))
+            try
+            {
+                ActivateProfile.Invoke(cmbProfiles.Text);
                 SetActiveProfile(cmbProfiles.Text);
+            }
+            catch (FileNotFoundException) { throw; }
+            catch (IOException) { throw; }
         }
         #endregion
 
