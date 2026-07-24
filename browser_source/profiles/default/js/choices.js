@@ -1,4 +1,4 @@
-// version: 20260424
+// version: 20260724
 
 let choices = [];
 
@@ -44,6 +44,7 @@ choices[4] = [
 	{name: "Ningguang", element: "Geo"},
 	{name: "Noelle", element: "Geo"},
 	{name: "Ororon", element: "Electro"},
+	{name: "Prune", element: "Anemo"},
 	{name: "Razor", element: "Electro"},
 	{name: "Rosaria", element: "Cryo"},
 	{name: "Sayu", element: "Anemo"},
@@ -94,6 +95,7 @@ choices[5] = [
 	{name: "Klee", element: "Pyro"},
 	{name: "Lauma", element: "Dendro"},
 	{name: "Linnea", element: "Geo"},
+	{name: "Lohen", element: "Cryo"},
 	{name: "Lumine", element: "Anemo"},
 	{name: "Lyney", element: "Pyro"},
 	{name: "Mavuika", element: "Pyro"},
@@ -103,10 +105,12 @@ choices[5] = [
 	{name: "Navia", element: "Geo"},
 	{name: "Nefer", element: "Dendro"},
 	{name: "Neuvillette", element: "Hydro"},
+	{name: "Nicole", element: "Pyro"},
 	{name: "Nilou", element: "Hydro"},
 	{name: "Qiqi", element: "Cryo"},
 	{name: "Raiden Shogun", element: "Electro"},
 	{name: "Sangonomiya Kokomi", element: "Cryo"},
+	{name: "Sandrone", element: "Cryo"},
 	{name: "Shenhe", element: "Cryo"},
 	{name: "Sigewinne", element: "Hydro"},
 	{name: "Skirk", element: "Cryo"},
