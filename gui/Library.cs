@@ -28,7 +28,7 @@ namespace GenshinImpact_WishOnStreamGUI
         Task HandleAuthSync(HttpServer.AuthPayload payload);
 
         // Profiles
-        void SaveProfile(string selectedProfile, string sourceProfileOfImages);
+        void SaveProfile(string selectedProfile, string sourceProfileOfImages, bool fromCopy);
         Task DeleteProfile(string selectedProfile);
         string[] CheckProfiles();
         void ActivateProfile(string selectedProfile);
@@ -45,7 +45,7 @@ namespace GenshinImpact_WishOnStreamGUI
 
         // User Info
         Task ValidateUserSettingsFromFiles();
-        void SaveUserSettingsToFile(bool revoke = false, bool fromExpiredToken = false);
+        void SaveUserSettingsToFile(UserInfo oldUserInfo, bool revoke = false, bool fromExpiredToken = false);
         event Action<UserInfo> UpdateSettingsPanelWithUserInfo;
         void RewriteLocalCreds(HttpServer.AuthPayload payload);
     }
@@ -72,15 +72,23 @@ namespace GenshinImpact_WishOnStreamGUI
 
         public async Task HandleAuthSync(HttpServer.AuthPayload payload)
         {
+            // gets the existing user's settings: duration, redeem, tickboxes
+            // creates a new UserInfoObject if local_creds.js has valid properties
             UserInfo tempUser = ReadUserSettingsFromFile();
+
+            RewriteLocalCreds(payload);
+
+            // UserInfoObject is updated (actually reset) from the payload properties
             UserInfoObject.UpdateUserInfoFromAuthPayload(payload);
-            SaveUserSettingsToFile();
+
+            // pass the tempUser to the Save function to compare usernames if we should retain the settings or reset
+            SaveUserSettingsToFile(oldUserInfo: tempUser);
             UpdateSettingsPanelWithUserInfo.Invoke(UserInfoObject);
         }
         #endregion
 
         #region Profiles
-        public void SaveProfile(string selectedProfile, string sourceProfileOfImages = "")
+        public void SaveProfile(string selectedProfile, string sourceProfileOfImages = "", bool fromCopy = false)
         {
             try
             {
@@ -88,7 +96,7 @@ namespace GenshinImpact_WishOnStreamGUI
 
                 // create directory if it doesn't exist
                 string profileJsPath = GetProfilePath(selectedProfile, "js");
-                if (Directory.Exists(profileJsPath))
+                if (fromCopy && Directory.Exists(profileJsPath))
                 {
                     DialogResult exitAsk = MessageBox.Show("This will overwrite the profile. Are you sure?", "Confirm overwrite", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                     if (exitAsk != DialogResult.Yes)
@@ -182,21 +190,13 @@ namespace GenshinImpact_WishOnStreamGUI
                         Directory.CreateDirectory(Path.Combine(profileImgPath, relativePath));
                         file.CopyTo(Path.Combine(profileImgPath, fileToCopy), true);
                     }
-
                 }
 
                 if (messages.Count > 0)
                     MessageBox.Show(string.Join("\n\n", messages), "Save status", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
             }
-            catch (ArgumentException)
-            {
-                throw;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            catch (ArgumentException) { throw; }
+            catch (Exception) { throw; }
         }
 
         public async Task DeleteProfile(string selectedProfile)
@@ -439,8 +439,6 @@ namespace GenshinImpact_WishOnStreamGUI
 
         public void ValidateOrRepairPullSettings(string selectedProfile)
         {
-            // check the JS files if they exist
-            // TO-DO: also check if valid
             try
             {
                 ReadPullSettingsFromFile(selectedProfile);
@@ -477,10 +475,7 @@ namespace GenshinImpact_WishOnStreamGUI
                     MessageBoxIcon.Warning
                     );
             }
-            catch (IOException)
-            {
-
-            }
+            catch (IOException) { throw; }
         }
 
         private void ReadPullSettingsFromFile(string selectedProfile)
@@ -566,10 +561,7 @@ namespace GenshinImpact_WishOnStreamGUI
             {
                 throw new HttpRequestException("Could not connect to check the latest character list version.");
             }
-            catch (Exception err)
-            {
-                Console.WriteLine(err.Message);
-            }
+            catch (Exception) { throw; }
 
             return (false, 0);
         }
@@ -815,62 +807,79 @@ namespace GenshinImpact_WishOnStreamGUI
                 if (int.TryParse(userSettingsContents["animation_duration"], out int duration))
                     UserInfoObject.Duration = duration;
 
-                _userInfo = UserInfoObject;
+                _userInfo = new(UserInfoObject);
             }
 
             return _userInfo;
         }
 
-        public void SaveUserSettingsToFile(bool revoke = false, bool fromExpiredToken = false)
+        public void SaveUserSettingsToFile(UserInfo oldUserInfo = null, bool revoke = false, bool fromExpiredToken = false)
         {
+            // if revoke, guarantee new user
+            // if fromExpiredToken, check if same user and assign old preferences
+
             string pathSettings = Path.Combine(jsPath, "local_creds.js");
             string errors = "";
             bool freshCredsFile = false;
 
+            // if local_creds.js doesn't exist, revoke
             if (!File.Exists(pathSettings))
             {
                 errors += "The \"local_creds.js\" file was not found in the \"js\" folder.\nOne will be created for you.\n\nAfterwards, please use the \"Connect to Twitch\" button to authenticate to allow you to select the Channel Point Reward and/or the chat command to use.\n\n";
-                freshCredsFile = true;
+                revoke = true;
             }
 
-
-            if (!revoke)
+            // if revoke OR Name is blank
+            // Name is expected to be blank on first time auth
+            // else check the Name and then Redeem
+            if (revoke)
             {
-                if (UserInfoObject.Name == "")
-                    errors += " - User is not set. Please connect using the Twitch button.\n";
-                if (UserInfoObject.Redeem == "")
-                    errors += " - The Channel Points Reward is not set. Please set this or make sure you have access to Twitch channel point rewards (Twitch Affiiate, etc.).\n\n";
-            }
-            else
-            {
+                // if local_creds.js is empty, invalid, or does not exist
+                // if ResetUser()
                 UserInfoObject = new();
             }
-
-            if (errors == "")
+            else if (oldUserInfo != null && oldUserInfo.Name == "")
             {
-                if (!fromExpiredToken)
+                revoke = true;
+            }
+            else if (oldUserInfo.Name == UserInfoObject.Name)
+            {
+                // if same user, re-assign preferences
+                UserInfoObject.Redeem = oldUserInfo.Redeem;
+                UserInfoObject.RedeemEnabled = oldUserInfo.RedeemEnabled;
+                UserInfoObject.TwitchCommandPrefix = oldUserInfo.TwitchCommandPrefix;
+                UserInfoObject.TwitchCommandEnabled = oldUserInfo.TwitchCommandEnabled;
+                UserInfoObject.Duration = oldUserInfo.Duration;
+
+                if (UserInfoObject.Redeem == "")
                 {
-                    if (!revoke)
-                    {
-                        if (!UserInfoObject.RedeemEnabled && !UserInfoObject.TwitchCommandEnabled && !freshCredsFile)
-                            errors += "You have not selected any way for your viewers to wish. Settings saved anyway.";
-                        else
-                            errors = "User settings saved successfully!";
-                    }
+                    errors += "The Channel Points Reward is not set. Please set this or make sure you have access to Twitch channel point rewards (Twitch Affiiate, etc.).\n\n";
                 }
-                using StreamWriter writer = new(pathSettings);
-                writer.WriteLine("var channelName = \'" + UserInfoObject.Name + "\';");
-                writer.WriteLine("var channelID = \'" + UserInfoObject.ID + "\';");
-                writer.WriteLine("var localToken = \'" + UserInfoObject.Token.Replace("'", @"\'") + "\';");
-                writer.WriteLine("var redeemTitle = \'" + UserInfoObject.Redeem + "\';");
-                writer.WriteLine("var redeemEnabled = " + (UserInfoObject.RedeemEnabled ? "true" : "false") + ";");
-                writer.WriteLine("var twitchCommandPrefix = \'" + UserInfoObject.TwitchCommandPrefix.Replace("'", @"\'") + "\';");
-                writer.WriteLine("var twitchCommandEnabled = " + (UserInfoObject.TwitchCommandEnabled ? "true" : "false") + ";");
-                writer.WriteLine("var animation_duration = " + UserInfoObject.Duration + ";");
             }
 
+            // only possibility of this should be when the user saves settings
+            // (what about when coming from fresh auth?)
+            // if not revoke AND not coming from expired token,
+            // check for wish methods
+            // throw error if none are enabled
+            if (!revoke && !fromExpiredToken)
+            {
+                if (!UserInfoObject.RedeemEnabled && !UserInfoObject.TwitchCommandEnabled && !freshCredsFile)
+                    errors += "You have not selected any way for your viewers to wish. Settings saved anyway.";
+            }
+
+            using StreamWriter writer = new(pathSettings);
+            writer.WriteLine("var channelName = \'" + UserInfoObject.Name + "\';");
+            writer.WriteLine("var channelID = \'" + UserInfoObject.ID + "\';");
+            writer.WriteLine("var localToken = \'" + UserInfoObject.Token.Replace("'", @"\'") + "\';");
+            writer.WriteLine("var redeemTitle = \'" + UserInfoObject.Redeem + "\';");
+            writer.WriteLine("var redeemEnabled = " + (UserInfoObject.RedeemEnabled ? "true" : "false") + ";");
+            writer.WriteLine("var twitchCommandPrefix = \'" + UserInfoObject.TwitchCommandPrefix.Replace("'", @"\'") + "\';");
+            writer.WriteLine("var twitchCommandEnabled = " + (UserInfoObject.TwitchCommandEnabled ? "true" : "false") + ";");
+            writer.WriteLine("var animation_duration = " + UserInfoObject.Duration + ";");
+
             if (errors != "")
-                MessageBox.Show(errors, "Save user", MessageBoxButtons.OK);
+                MessageBox.Show(errors, "Save user", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         public void RewriteLocalCreds(HttpServer.AuthPayload payload)
@@ -1027,7 +1036,6 @@ namespace GenshinImpact_WishOnStreamGUI
     {
         public const string localhostAddress = "http://localhost:8275/";
         public event Action<AuthPayload> AuthCompleted;
-        public event Action<AuthPayload> RewriteLocalCreds;
         private HttpListener _listener;
 
         public void Start()
@@ -1093,9 +1101,6 @@ namespace GenshinImpact_WishOnStreamGUI
                     : []
             };
 
-            // rewrite local_creds.js file with payload
-            RewriteLocalCreds?.Invoke(payload);
-
             // notify listeners
             AuthCompleted?.Invoke(payload);
 
@@ -1145,6 +1150,20 @@ namespace GenshinImpact_WishOnStreamGUI
             _twitchCommandEnabled = false;
             _broadcasterType = "";
             _rewards = [];
+        }
+
+        public UserInfo(UserInfo _userCopy)
+        {
+            _name = _userCopy._name;
+            _id = _userCopy._id;
+            _token = _userCopy._token;
+            _redeem = _userCopy._redeem;
+            _redeemEnabled = _userCopy._redeemEnabled;
+            _duration = _userCopy._duration;
+            _twitchCommandPrefix = _userCopy._twitchCommandPrefix;
+            _twitchCommandEnabled = _userCopy._twitchCommandEnabled;
+            _broadcasterType = _userCopy._broadcasterType;
+            _rewards = _userCopy._rewards;
         }
         public string Name => _name;
         public string ID => _id;

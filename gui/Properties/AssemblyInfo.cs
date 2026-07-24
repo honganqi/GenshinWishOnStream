@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Genshin Impact: Wish On Stream GUI")]
+[assembly: AssemblyTitle("Genshin Wish On Stream GUI")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("honganqi")]
-[assembly: AssemblyProduct("Genshin Impact: Wish On Stream")]
+[assembly: AssemblyProduct("Genshin Wish On Stream")]
 [assembly: AssemblyCopyright("Copyright © 2022 honganqi")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

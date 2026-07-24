@@ -62,14 +62,21 @@ namespace GenshinImpact_WishOnStreamGUI
             List<string> dullBlades = new();
             List<string> errors = new();
 
-            foreach (TextBox dullSearch in Controls.OfType<TextBox>().Where(l => l.Name.StartsWith("txtDull_")))
+            try
             {
-                string[] pair = dullSearch.Name.Split('_');
-                if (dullSearch.Text.Trim() != "")
-                    dullBlades.Add(dullSearch.Text.Trim());
-            }
+                foreach (TextBox dullSearch in Controls.OfType<TextBox>().Where(l => l.Name.StartsWith("txtDull_")))
+                {
+                    string[] pair = dullSearch.Name.Split('_');
+                    if (dullSearch.Text.Trim() != "")
+                        dullBlades.Add(dullSearch.Text.Trim());
+                }
 
-            return dullBlades;
+                return dullBlades;
+            }
+            catch (ArgumentException ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         private void SortDullBladesData(List<string> dullBlades)

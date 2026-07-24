@@ -163,7 +163,6 @@ namespace GenshinImpact_WishOnStreamGUI
         }
         private void btnProfileCreateSave_Click(object sender, EventArgs e)
         {
-            // TO-DO: sanitize new name
             try
             {
                 SaveProfileToFile.Invoke(txtNewProfile.Text, selectedProfile);
@@ -194,8 +193,12 @@ namespace GenshinImpact_WishOnStreamGUI
                 ActivateProfile.Invoke(cmbProfiles.Text);
                 SetActiveProfile(cmbProfiles.Text);
             }
-            catch (FileNotFoundException) { throw; }
-            catch (IOException) { throw; }
+            catch (FileNotFoundException ex) { throw new Exception(ex.Message); }
+            catch (IOException ex) { throw new Exception(ex.Message); }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Activate error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
         #endregion
 

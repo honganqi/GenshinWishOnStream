@@ -26,6 +26,7 @@ namespace GenshinImpact_WishOnStreamGUI
 
         readonly string jsPath = Path.Combine(Application.StartupPath, "js");
         string activeProfile;
+        bool isFromLoad = true;
 
         public bool updateAvailable = false;
         readonly string updateurl = "https://raw.githubusercontent.com/honganqi/GenshinWishOnStream/main/latest.json";
@@ -112,16 +113,10 @@ namespace GenshinImpact_WishOnStreamGUI
             {
                 try
                 {
-                    SaveProfile(newProfile, sourceProfile);
+                    SaveProfile(newProfile, sourceProfile, fromCopy: true);
                 }
-                catch (ArgumentException ex)
-                {
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    throw;
-                }
+                catch (ArgumentException) { throw; }
+                catch (Exception) { throw; }
             };
 
             panelProfilesControl.ResetDownloadConfigs = async fileList =>
@@ -172,8 +167,19 @@ namespace GenshinImpact_WishOnStreamGUI
             {
                 try
                 {
-                    ChangeProfile(profile);
-                    panelProfilesTopBarControl.SetSelectedProfile(profile);
+                    bool proceed = true;
+                    if (panelCharactersControl.hasUnsavedChanges)
+                    {
+                        DialogResult ask = MessageBox.Show("Change?", "Unsaved changes", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                        if (ask != DialogResult.Yes)
+                            proceed = false;
+                    }
+                    if (proceed)
+                    {
+                        ChangeProfile(profile);
+                        panelProfilesTopBarControl.SetSelectedProfile(profile);
+                        panelCharactersControl.hasUnsavedChanges = false;
+                    }
                 }
                 catch (IOException) { throw; }
             };
@@ -182,8 +188,19 @@ namespace GenshinImpact_WishOnStreamGUI
             {
                 try
                 {
-                    ChangeProfile(profile);
-                    panelProfilesControl.SetSelectedProfile(profile);
+                    bool proceed = true;
+                    if (panelCharactersControl.hasUnsavedChanges)
+                    {
+                        DialogResult ask = MessageBox.Show("Change?", "Unsaved changes", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                        if (ask != DialogResult.Yes)
+                            proceed = false;
+                    }
+                    if (proceed)
+                    {
+                        ChangeProfile(profile);
+                        panelProfilesControl.SetSelectedProfile(profile);
+                        panelCharactersControl.hasUnsavedChanges = false;
+                    }
                 }
                 catch (IOException) { throw; }
             };
@@ -197,6 +214,7 @@ namespace GenshinImpact_WishOnStreamGUI
                 }
                 catch (FileNotFoundException) { throw; }
                 catch (IOException) { throw; }
+                catch (Exception) { throw; }
             };
 
             panelProfilesTopBarControl.ActivateProfile = profile =>
@@ -208,6 +226,7 @@ namespace GenshinImpact_WishOnStreamGUI
                 }
                 catch (FileNotFoundException) { throw; }
                 catch (IOException) { throw; }
+                catch (Exception) { throw; }
             };
 
             panelProfilesControl.DeleteProfile = async profile =>
@@ -246,8 +265,6 @@ namespace GenshinImpact_WishOnStreamGUI
                 });
             };
 
-            _library.HttpServerObject.RewriteLocalCreds += payload => _library.RewriteLocalCreds(payload);
-
             panelSettingsControl.GetCustomRewards = async () =>
             {
                 List<string> rewards = new();
@@ -271,7 +288,7 @@ namespace GenshinImpact_WishOnStreamGUI
             panelSettingsControl.SaveUserSettingsToFile = async (userInfo, revoke, fromExpiredToken) =>
             {
                 _library.UserInfoObject = userInfo;
-                _library.SaveUserSettingsToFile(revoke, fromExpiredToken);
+                _library.SaveUserSettingsToFile(userInfo, revoke, fromExpiredToken);
             };
 
             _library.UpdateSettingsPanelWithUserInfo += async userInfo =>
@@ -315,22 +332,28 @@ namespace GenshinImpact_WishOnStreamGUI
 
         private void ChangeProfile(string profile)
         {
-            // TO-DO: before switching, check if there are unsaved changes and ask
-            try
+            if (!isFromLoad)
             {
-                // ValidateOrRepairPullSettings handles FileNotFoundException by creating those missing files
-                _library.ValidateOrRepairPullSettings(profile);
-                panelCharactersControl.InitializeCharactersPanel(_library.StarListObject);
-                panelDullBladesControl.InitializeDullBladesPanel(_library.DullBlades);
+                // TO-DO: before switching, check if there are unsaved changes and ask
+                try
+                {
+                    // ValidateOrRepairPullSettings handles FileNotFoundException on its own by creating those missing files
+                    _library.ValidateOrRepairPullSettings(profile);
+                    panelCharactersControl.InitializeCharactersPanel(_library.StarListObject);
+                    panelDullBladesControl.InitializeDullBladesPanel(_library.DullBlades);
+                }
+                catch (IOException) { throw; }
             }
-            catch (IOException) { throw; }
+
+            if (isFromLoad)
+                isFromLoad = false;
         }
 
         private void ActivateProfile(string profile)
         {
-            // TO-DO: save AND activate?
             try
             {
+                SaveProfile(profile);
                 _library.ActivateProfile(profile);
                 activeProfile = profile;
                 panelProfilesControl.SetActiveProfile(activeProfile);
@@ -338,6 +361,7 @@ namespace GenshinImpact_WishOnStreamGUI
                 panelCharactersControl.InitializeCharactersPanel(_library.StarListObject);
                 panelDullBladesControl.InitializeDullBladesPanel(_library.DullBlades);
             }
+            catch (ArgumentException) { throw; }
             catch (FileNotFoundException) { throw; }
             catch (IOException) { throw; }
         }
@@ -352,25 +376,40 @@ namespace GenshinImpact_WishOnStreamGUI
 
 
         #region File Read-Write
-        void SaveProfile(string profile, string sourceProfileofImages = "")
+        void SaveProfile(string profile, string sourceProfileofImages = "", bool fromCopy = false)
         {
-            StarList starList = panelCharactersControl.ExtractDataFromCharactersPanel();
-            List<string> dullBlades = panelDullBladesControl.ExtractDataFromDullBladesPanel();
-            _library.StarListObject = starList;
-            _library.DullBlades = dullBlades;
+            List<string> errors = [];
+
             try
             {
-                _library.SaveProfile(profile, sourceProfileofImages);
+                StarList starList = panelCharactersControl.ExtractDataFromCharactersPanel();
+                _library.StarListObject = starList;
             }
-            catch (ArgumentException)
+            catch (ArgumentException ex) { errors.Add(ex.Message); }
+            catch (Exception ex) { errors.Add(ex.Message); }
+
+            try
             {
-                throw;
+                List<string> dullBlades = panelDullBladesControl.ExtractDataFromDullBladesPanel();
+                _library.DullBlades = dullBlades;
             }
-            catch (Exception)
+            catch (ArgumentException ex) { errors.Add(ex.Message); }
+            catch (Exception ex) { errors.Add(ex.Message); }
+
+            if (errors.Count > 0)
             {
-                throw;
+                //MessageBox.Show(string.Join("\n", errors.ToArray()), "Save error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                throw new Exception(string.Join("\n", errors.ToArray()));
             }
-            
+            else
+            {
+                try
+                {
+                    _library.SaveProfile(profile, sourceProfileofImages, fromCopy);
+                }
+                catch (ArgumentException ex) { errors.Add(ex.Message); }
+                catch (Exception ex) { errors.Add(ex.Message); }
+            }
         }
         #endregion
 
@@ -442,11 +481,11 @@ namespace GenshinImpact_WishOnStreamGUI
             }
             catch (HttpRequestException)
             {
-                throw;
+                throw new Exception("Unable to connect to check for updates");
             }
-            catch (Exception err)
+            catch (Exception ex)
             {
-                Console.WriteLine(err.Message);
+                MessageBox.Show($"There was an error checking the update:\n{ex.Message}", "Update error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -601,11 +640,11 @@ namespace GenshinImpact_WishOnStreamGUI
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine(ex.Message);
+                MessageBox.Show(ex.Message, "Connection error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -654,7 +693,18 @@ namespace GenshinImpact_WishOnStreamGUI
             }
         }
 
-        private async void btnSave_Click(object sender, EventArgs e) => SaveProfile(panelProfilesControl.selectedProfile);
+        private async void btnSave_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                SaveProfile(panelProfilesControl.selectedProfile);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Save error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            
+        }
 
         protected override void WndProc(ref Message m)
         {
