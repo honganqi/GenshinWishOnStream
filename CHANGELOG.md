@@ -2,6 +2,30 @@
 All notable changes to this project will be documented in
 this file.
 
+## 1.11 - 2026/07/25
+### Added
+* GUI: Profile Selector! The biggest change in this app in a while
+  * Added a bar at the top to:
+    * select profiles
+    * show active profile
+    * activate a profile
+  * "Create New Profile" creates a new profile based on the currently selected profile
+  * "Set as Active" activates the currently selected profile. Remember to refresh your browser source in OBS after this if you have it open.
+  * "Reset Default Profile" fetches the characters and rates from the original source
+  * "Get Default Images" fetches the original images for the default profile. Useful if you want to get the images of the new characters and/or if you broke some of them somehow
+* GUI: Shows if there's an updated character list and shows a button which lets you download the list and the images
+* GUI: Added tons of validation - if added star level has 0% rate, if there are no characters in a star level, etc.
+### Changed
+* GUI: Overhauled panels in the backend and moved their functions to their own controls - this was long overdue
+* GUI: Updates can now be done in place
+* GUI: Updated character lists and images can now be downloaded through the app
+* GUI: User will be notified if there are character image and list updates in what is now called the "default" profile
+### Fixed
+* Backend: Fixed an issue with the backend where additional users possibly weren't able to authenticate and therefore use this
+### Removed
+* GUI: Removed annoying instances of the message box/alert that pops up in some instances and instead displays something on the app itself (e.g. to notify that the user's token has expired)
+* GUI: Removed the "Check" function. This is automatically done when saving the profile, the user settings, or exiting the app.
+
 ## 1.10 - 2026/04/24
 ### Added
 * Added Columbina, Zibai, Illuga, Varka, Linnea, Candace (poor Candace, I forgot about her)
