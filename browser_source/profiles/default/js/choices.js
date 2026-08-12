@@ -1,4 +1,4 @@
-// version: 20260724
+// version: 20260812
 
 let choices = [];
 
@@ -43,6 +43,7 @@ choices[4] = [
 	{name: "Mika", element: "Cryo"},
 	{name: "Ningguang", element: "Geo"},
 	{name: "Noelle", element: "Geo"},
+	{name: "Odette", element: "Cryo"},
 	{name: "Ororon", element: "Electro"},
 	{name: "Prune", element: "Anemo"},
 	{name: "Razor", element: "Electro"},
@@ -66,6 +67,7 @@ choices[5] = [
 	{name: "Albedo", element: "Geo"},
 	{name: "Alhaitham", element: "Dendro"},
 	{name: "Aloy", element: "Cryo"},
+	{name: "Alyosha", element: "Electro"},
 	{name: "Arataki Itto", element: "Geo"},
 	{name: "Arlecchino", element: "Pyro"},
 	{name: "Baizhu", element: "Dendro"},
