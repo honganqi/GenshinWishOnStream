@@ -31,6 +31,7 @@ namespace GenshinImpact_WishOnStreamGUI
         public bool updateAvailable = false;
         readonly string updateurl = "https://raw.githubusercontent.com/honganqi/GenshinWishOnStream/main/latest.json";
         string downloadURL = "";
+        bool downloadMissingDefaultsRejected = false;
 
         PanelSettingsControl panelSettingsControl = new();
         PanelCharactersControl panelCharactersControl = new();
@@ -364,6 +365,7 @@ namespace GenshinImpact_WishOnStreamGUI
             catch (ArgumentException) { throw; }
             catch (FileNotFoundException) { throw; }
             catch (IOException) { throw; }
+            catch (Exception) { throw; }
         }
 
         private void UpdateProfileList()
@@ -580,22 +582,78 @@ namespace GenshinImpact_WishOnStreamGUI
         #region Form Controls
         private void MainWindow_FormClosing(object sender, FormClosingEventArgs e)
         {
-            string additionalQuestion = "";
-            if (panelProfilesControl.selectedProfile != activeProfile)
-                additionalQuestion = "\n\nReminder: The selected profile is not the active one.";
-            DialogResult exitAsk = MessageBox.Show($"You sure? {additionalQuestion}", "Exit", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (exitAsk == DialogResult.Yes)
+            if (!downloadMissingDefaultsRejected)
             {
-                _library.HttpServerObject.Stop();
-                SaveWindowSettings();
+                string additionalQuestion = "";
+                if (panelProfilesControl.selectedProfile != activeProfile)
+                    additionalQuestion = "\n\nReminder: The selected profile is not the active one.";
+                DialogResult exitAsk = MessageBox.Show($"You sure? {additionalQuestion}", "Exit", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (exitAsk == DialogResult.Yes)
+                {
+                    _library.HttpServerObject.Stop();
+                    SaveWindowSettings();
+                }
+                else
+                    e.Cancel = true;
             }
-            else
-                e.Cancel = true;
         }
 
         private async void MainWindow_Load(object sender, EventArgs e)
         {
             // get profile directories and populate "profiles" combobox
+            Task<string> defaultProfileExists = _library.CheckDefaultProfile();
+            string defaultProfilePath = await defaultProfileExists;
+
+            if (defaultProfilePath != "")
+            {
+                try
+                {
+                    List<string> downloadList = await _library.DownloadDefaultImages_Prefetch(false);
+                    if (downloadList.Count > 0)
+                    {
+                        DialogResult ask = MessageBox.Show(
+                            $"Files required by the default profile were not found in:\n\n{defaultProfilePath}\n\n" +
+                            $"It will now be downloaded along with the {downloadList.Count} default images.\n\n" +
+                            $"Do you want to continue?",
+                            "Default profile missing",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question
+                            );
+                        if (ask != DialogResult.Yes)
+                        {
+                            downloadMissingDefaultsRejected = true;
+                            MessageBox.Show("The missing folder is required for this app to run. This app will now exit.", "Required initial files missing", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            Application.Exit();
+                        }
+
+                        panelProfilesControl.SetDownloadStatus(true);
+                        var progress = new Progress<DownloadProgress>(p =>
+                        {
+                            panelProfilesControl.UpdateProgress(p);
+                        });
+
+                        SwitchPanel(panelProfiles);
+                        await _library.DownloadDefaultConfigs(["choices.js", "rates.js"]);
+                        await _library.DownloadDefaultImages(downloadList, progress);
+
+                        MessageBox.Show("Default profile downloaded successfully!", "Downloaded Default Profile", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+                finally
+                {
+                    panelProfilesControl.SetDownloadStatus(false);
+                    _library.ActivateProfile("default");
+                    activeProfile = "default";
+                    panelProfilesControl.SetActiveProfile(activeProfile);
+                    panelProfilesTopBarControl.SetActiveProfile(activeProfile);
+                    panelCharactersControl.InitializeCharactersPanel(_library.StarListObject);
+                    panelDullBladesControl.InitializeDullBladesPanel(_library.DullBlades);
+                }
+            }
             string[] profiles = _library.CheckProfiles();
             panelProfilesTopBarControl.PopulateProfiles(profiles, activeProfile);
             panelProfilesControl.PopulateProfiles(profiles, activeProfile);

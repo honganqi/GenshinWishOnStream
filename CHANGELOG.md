@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in
 this file.
 
+## 1.12 - 2026/10/14
+### Fixed
+* GUI: When launching for the first time, the app crashes if the required folders are missing. The app now checks if they exist before proceeding and creates them if they don't. It also downloads the default profile (both scripts and images) if it's not found and activates it.
+
 ## 1.11 - 2026/07/25
 ### Added
 * GUI: Profile Selector! The biggest change in this app in a while

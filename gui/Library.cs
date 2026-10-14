@@ -31,6 +31,7 @@ namespace GenshinImpact_WishOnStreamGUI
         void SaveProfile(string selectedProfile, string sourceProfileOfImages, bool fromCopy);
         Task DeleteProfile(string selectedProfile);
         string[] CheckProfiles();
+        Task<string> CheckDefaultProfile();
         void ActivateProfile(string selectedProfile);
 
         // Pull Settings
@@ -215,6 +216,22 @@ namespace GenshinImpact_WishOnStreamGUI
             }
         }
 
+        public async Task<string> CheckDefaultProfile()
+        {
+            string returnString = "";
+            Directory.CreateDirectory(profilesPath);
+            string defaultJsPath = Path.Combine(profilesPath, "default", "js");
+            string choicesPath = Path.Combine(defaultJsPath, "choices.js");
+            string ratesPath = Path.Combine(defaultJsPath, "rates.js");
+
+            if (!File.Exists(choicesPath) || !File.Exists(ratesPath))
+            {
+                returnString = profilesPath;
+            }
+
+            return returnString;
+        }
+
         public string[] CheckProfiles()
         {
             // get profile directories and populate "profiles" combobox
@@ -240,22 +257,28 @@ namespace GenshinImpact_WishOnStreamGUI
                 DirectoryInfo imgDir = new(sourceImgPath);
                 DirectoryInfo activeImgDir = new(imgPath);
 
+                Directory.CreateDirectory(jsPath);
+                Directory.CreateDirectory(imgPath);
+
                 foreach (FileInfo file in jsDir.EnumerateFiles("*", SearchOption.AllDirectories))
                 {
                     string fileToCopy = file.FullName.Substring(jsDir.FullName.Length + 1);
                     file.CopyTo(Path.Combine(jsPath, fileToCopy), true);
                 }
 
-                // 1. Delete all files in the root of this directory
-                foreach (FileInfo file in activeImgDir.EnumerateFiles())
+                if (activeImgDir.Exists)
                 {
-                    file.Delete();
-                }
+                    // 1. Delete all files in the root of this directory
+                    foreach (FileInfo file in activeImgDir.EnumerateFiles())
+                    {
+                        file.Delete();
+                    }
 
-                // 2. Delete all subdirectories and their contents recursively
-                foreach (DirectoryInfo dir in activeImgDir.EnumerateDirectories())
-                {
-                    dir.Delete(true);
+                    // 2. Delete all subdirectories and their contents recursively
+                    foreach (DirectoryInfo dir in activeImgDir.EnumerateDirectories())
+                    {
+                        dir.Delete(true);
+                    }
                 }
 
                 foreach (FileInfo file in imgDir.EnumerateFiles("*", SearchOption.AllDirectories))
@@ -268,7 +291,6 @@ namespace GenshinImpact_WishOnStreamGUI
                     Directory.CreateDirectory(Path.Combine(imgPath, dir));
                     file.CopyTo(Path.Combine(imgPath, fileToCopy), true);
                 }
-
             }
             catch (FileNotFoundException) { throw; }
             catch (IOException) { throw; }
@@ -577,7 +599,9 @@ namespace GenshinImpact_WishOnStreamGUI
                 {
                     string url = Path.Combine(baseUrl, item);
                     string file = await Interwebs.httpClient.GetStringAsync(url);
-                    string saveTo = Path.Combine(GetProfilePath("default", "js"), item);
+                    string savePath = GetProfilePath("default", "js");
+                    string saveTo = Path.Combine(savePath, item);
+                    Directory.CreateDirectory(savePath);
                     File.WriteAllText(saveTo, file);
                     success = true;
                 }
@@ -604,6 +628,8 @@ namespace GenshinImpact_WishOnStreamGUI
                 totalSize = 0;
                 List<string> existingFiles = [];
                 string checkPath = GetProfilePath("default", "img");
+
+                Directory.CreateDirectory(checkPath);
 
                 // if just checking for an update, don't do full download
                 // instead, check for existing files, add them to the exclusion list
@@ -825,6 +851,7 @@ namespace GenshinImpact_WishOnStreamGUI
             // if local_creds.js doesn't exist, revoke
             if (!File.Exists(pathSettings))
             {
+                Directory.CreateDirectory(Path.GetDirectoryName(pathSettings));
                 errors += "The \"local_creds.js\" file was not found in the \"js\" folder.\nOne will be created for you.\n\nAfterwards, please use the \"Connect to Twitch\" button to authenticate to allow you to select the Channel Point Reward and/or the chat command to use.\n\n";
                 revoke = true;
             }
